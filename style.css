@@ -435,6 +435,23 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   position: relative;
 }
 
+.sidebar__item--user {
+  display: none;
+}
+
+.sidebar__avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .sidebar__item:hover {
   background: var(--color-bg);
   color: var(--color-text-primary);
@@ -989,14 +1006,9 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   }
 
   .topbar__subtitle,
-  .topbar__user-info,
+  .topbar__user,
   .topbar__logout {
     display: none;
-  }
-
-  .topbar__user {
-    padding: 0;
-    background: transparent;
   }
 
   .topbar__search {
@@ -1008,7 +1020,67 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   }
 
   .main {
-    padding: var(--space-4) var(--space-3) var(--space-6);
+    padding: var(--space-4) var(--space-3) calc(84px + env(safe-area-inset-bottom));
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    display: block;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    border-bottom: none;
+    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.08);
+    overflow: visible;
+  }
+
+  .sidebar__menu {
+    display: none;
+  }
+
+  .sidebar__menu:first-of-type {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .sidebar__item,
+  .sidebar__item--user {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-height: 54px;
+    padding: 6px 4px;
+    font-size: 11px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .sidebar__item.is-active::before {
+    display: none;
+  }
+
+  .sidebar__item.is-active {
+    box-shadow: inset 0 -2px 0 var(--color-primary);
+  }
+
+  .sidebar__badge {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    margin-left: 0;
+  }
+
+  .sidebar__avatar {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
   }
 
   .main__header,
