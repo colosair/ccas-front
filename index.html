@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CCAS - 홈</title>
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* 홈 전용 스타일 */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .quick-action {
+      display: flex;
+      align-items: stretch;
+      gap: var(--space-4);
+      padding: var(--space-5);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quick-action:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .quick-action__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 22px;
+    }
+
+    .quick-action--audio .quick-action__icon {
+      background: var(--color-ai-subtle);
+      color: var(--color-ai);
+    }
+
+    .quick-action--text .quick-action__icon {
+      background: var(--color-human-subtle);
+      color: var(--color-human);
+    }
+
+    .quick-action__content { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+    .quick-action__title {
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-semibold);
+      color: var(--color-text-primary);
+    }
+
+    .quick-action__desc {
+      font-size: var(--fs-sm);
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    .quick-action__arrow {
+      align-self: center;
+      color: var(--color-text-tertiary);
+      font-size: 18px;
+      transition: transform 0.15s, color 0.15s;
+    }
+
+    .quick-action:hover .quick-action__arrow {
+      color: var(--color-primary);
+      transform: translateX(2px);
+    }
+
+    /* KPI 카드 */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+
+    .kpi {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .kpi__label {
+      font-size: var(--fs-sm);
+      color: var(--color-text-secondary);
+      font-weight: var(--fw-medium);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .kpi__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .kpi__value {
+      font-size: var(--fs-3xl);
+      font-weight: var(--fw-bold);
+      color: var(--color-text-primary);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .kpi__unit {
+      font-size: var(--fs-md);
+      font-weight: var(--fw-medium);
+      color: var(--color-text-secondary);
+      margin-left: 2px;
+    }
+
+    .kpi__trend {
+      font-size: var(--fs-xs);
+      color: var(--color-text-tertiary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .kpi__trend--up { color: var(--color-danger); }
+    .kpi__trend--down { color: var(--color-success); }
+
+    /* 콘텐츠 그리드 */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: var(--space-5);
+      align-items: start;
+    }
+
+    /* 공지사항 */
+    .notice {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .notice__item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--color-divider);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .notice__item:last-child { border-bottom: none; padding-bottom: 0; }
+    .notice__item:first-child { padding-top: 0; }
+    .notice__item:hover { opacity: 0.7; }
+
+    .notice__tag {
+      flex-shrink: 0;
+      align-self: flex-start;
+    }
+
+    .notice__content { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+    .notice__title {
+      font-size: var(--fs-md);
+      color: var(--color-text-primary);
+      font-weight: var(--fw-medium);
+      line-height: 1.4;
+    }
+
+    .notice__date {
+      font-size: var(--fs-xs);
+      color: var(--color-text-tertiary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 우선순위 배지 */
+    .priority {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-medium);
+    }
+
+    .priority__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .priority--low .priority__dot { background: var(--color-text-tertiary); }
+    .priority--low { color: var(--color-text-secondary); }
+
+    .priority--normal .priority__dot { background: var(--color-warning); }
+    .priority--normal { color: var(--color-warning); }
+
+    .priority--high .priority__dot { background: var(--color-danger); }
+    .priority--high { color: var(--color-danger); }
+
+    /* AI 분류 후보 칩 */
+    .ai-suggest {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      background: var(--color-ai-subtle);
+      color: var(--color-ai);
+      border-radius: 4px;
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-medium);
+      white-space: nowrap;
+      max-width: 100%;
+    }
+
+    .ai-suggest__confidence {
+      color: var(--color-ai);
+      opacity: 0.7;
+      font-variant-numeric: tabular-nums;
+      margin-left: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===== Top Bar ===== -->
+    <header class="topbar">
+      <a class="topbar__brand" href="index.html" aria-label="CCAS 홈으로 이동">
+        <div class="topbar__logo"><img src="images/logo.svg" alt="CCAS 로고"></div>
+        <div>
+          <span class="topbar__title">CCAS</span>
+          <span class="topbar__subtitle">민원분류지원시스템</span>
+        </div>
+      </a>
+
+      <div class="topbar__search">
+        <span class="topbar__search-scope">전체 ▾</span>
+        <input type="text" placeholder="민원번호, 키워드, 민원인명으로 검색">
+      </div>
+
+      <div class="topbar__right">
+        <button class="topbar__notification" aria-label="알림">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="topbar__notification-dot"></span>
+        </button>
+
+        <div class="topbar__user">
+          <div class="topbar__avatar">홍</div>
+          <div class="topbar__user-info">
+            <span class="topbar__user-name">홍길동 경위</span>
+            <span class="topbar__user-dept">○○경찰서 민원실</span>
+          </div>
+        </div>
+
+        <button class="theme-toggle" id="themeToggle" aria-label="테마 전환" title="라이트/다크 모드 전환">
+          <svg class="theme-toggle__icon--moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="theme-toggle__icon--sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+
+        <button class="topbar__logout" aria-label="로그아웃">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <div class="sidebar__section-title">업무</div>
+      <nav class="sidebar__menu">
+        <a class="sidebar__item is-active">
+          <span class="sidebar__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </span>
+          홈
+        </a>
+        <a class="sidebar__item" href="upload.html">
+          <span class="sidebar__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          </span>
+          신규 민원 등록
+        </a>
+        <a class="sidebar__item">
+          <span class="sidebar__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </span>
+          내 처리 민원
+          <span class="sidebar__badge">12</span>
+        </a>
+        <a class="sidebar__item">
+          <span class="sidebar__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          부서 민원
+        </a>
+      </nav>
+
+      <div class="sidebar__divider"></div>
+
+      <div class="sidebar__section-title">지원</div>
+      <nav class="sidebar__menu">
+        <a class="sidebar__item">
+          <span class="sidebar__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
+          도움말
+        </a>
+      </nav>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <main class="main">
+
+      <!-- 인사말 헤더 -->
+      <div class="main__header">
+        <div class="main__title-group">
+          <h1 class="main__greeting">안녕하세요, <strong>홍길동 경위</strong>님</h1>
+          <div class="main__meta">
+            <span>2026년 5월 27일 (수)</span>
+            <span class="main__meta-divider"></span>
+            <span>처리 대기 <span class="main__meta-highlight">12건</span></span>
+            <span class="main__meta-divider"></span>
+            <span>최근 로그인 2시간 전</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 빠른 액션 -->
+      <section class="quick-actions">
+        <a class="quick-action quick-action--audio" href="upload.html">
+          <div class="quick-action__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
+          <div class="quick-action__content">
+            <span class="quick-action__title">녹취 파일 업로드</span>
+            <span class="quick-action__desc">통화 녹음 파일을 업로드하면 STT 변환부터 AI 분석까지 자동 진행됩니다</span>
+          </div>
+          <span class="quick-action__arrow">→</span>
+        </a>
+
+        <a class="quick-action quick-action--text" href="upload.html">
+          <div class="quick-action__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+          <div class="quick-action__content">
+            <span class="quick-action__title">텍스트 직접 입력</span>
+            <span class="quick-action__desc">민원 내용을 직접 입력하여 AI 분류 및 이관 후보를 받아볼 수 있습니다</span>
+          </div>
+          <span class="quick-action__arrow">→</span>
+        </a>
+      </section>
+
+      <!-- KPI -->
+      <section class="kpi-grid">
+        <div class="kpi">
+          <span class="kpi__label"><span class="kpi__dot" style="background: var(--color-danger);"></span>처리 대기</span>
+          <span class="kpi__value">12<span class="kpi__unit">건</span></span>
+          <span class="kpi__trend kpi__trend--up">▲ 전일 대비 +3건</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__label"><span class="kpi__dot" style="background: var(--color-warning);"></span>진행 중</span>
+          <span class="kpi__value">5<span class="kpi__unit">건</span></span>
+          <span class="kpi__trend">전일 대비 동일</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__label"><span class="kpi__dot" style="background: var(--color-success);"></span>오늘 처리 완료</span>
+          <span class="kpi__value">8<span class="kpi__unit">건</span></span>
+          <span class="kpi__trend kpi__trend--down">▼ 전일 대비 +2건</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__label"><span class="kpi__dot" style="background: var(--color-ai);"></span>평균 처리시간</span>
+          <span class="kpi__value">14<span class="kpi__unit">분</span></span>
+          <span class="kpi__trend kpi__trend--down">▼ 전주 대비 -3분</span>
+        </div>
+      </section>
+
+      <!-- 콘텐츠 그리드: 표 + 공지 -->
+      <div class="content-grid">
+
+        <!-- 처리 대기 민원 표 -->
+        <section class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              내 처리 대기 민원
+            </div>
+            <a class="card__action">전체 보기 →</a>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width: 80px;">번호</th>
+                <th style="width: 90px;">접수시각</th>
+                <th>민원 요약</th>
+                <th style="width: 180px;">AI 분류 후보</th>
+                <th style="width: 80px;">우선순위</th>
+                <th style="width: 80px;" class="text-right">액션</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr onclick="location.href='analysis.html'">
+                <td class="col-id">#0234</td>
+                <td class="col-time">09:14</td>
+                <td class="col-summary">중고거래 사기 의심 - 송금 후 물품 미수령</td>
+                <td><span class="ai-suggest">사이버 사기<span class="ai-suggest__confidence">87%</span></span></td>
+                <td><span class="priority priority--normal"><span class="priority__dot"></span>보통</span></td>
+                <td class="col-action"><button class="btn btn--secondary btn--sm">검토</button></td>
+              </tr>
+              <tr onclick="location.href='analysis.html'">
+                <td class="col-id">#0233</td>
+                <td class="col-time">08:52</td>
+                <td class="col-summary">아파트 단지 내 불법 주정차 신고</td>
+                <td><span class="ai-suggest">불법주정차<span class="ai-suggest__confidence">91%</span></span></td>
+                <td><span class="priority priority--low"><span class="priority__dot"></span>낮음</span></td>
+                <td class="col-action"><button class="btn btn--secondary btn--sm">검토</button></td>
+              </tr>
+              <tr onclick="location.href='analysis.html'">
+                <td class="col-id">#0231</td>
+                <td class="col-time">08:30</td>
+                <td class="col-summary">지하철에서 분실한 지갑 신고 방법 문의</td>
+                <td><span class="ai-suggest">유실물 안내<span class="ai-suggest__confidence">94%</span></span></td>
+                <td><span class="priority priority--low"><span class="priority__dot"></span>낮음</span></td>
+                <td class="col-action"><button class="btn btn--secondary btn--sm">검토</button></td>
+              </tr>
+              <tr onclick="location.href='analysis.html'">
+                <td class="col-id">#0230</td>
+                <td class="col-time">08:15</td>
+                <td class="col-summary">새벽 시간대 공사 소음 반복 발생</td>
+                <td><span class="ai-suggest">생활민원<span class="ai-suggest__confidence">82%</span></span></td>
+                <td><span class="priority priority--normal"><span class="priority__dot"></span>보통</span></td>
+                <td class="col-action"><button class="btn btn--secondary btn--sm">검토</button></td>
+              </tr>
+              <tr onclick="location.href='analysis.html'">
+                <td class="col-id">#0229</td>
+                <td class="col-time">07:48</td>
+                <td class="col-summary">교통사고 사실확인원 발급 신청 절차 문의</td>
+                <td><span class="ai-suggest">교통민원<span class="ai-suggest__confidence">89%</span></span></td>
+                <td><span class="priority priority--low"><span class="priority__dot"></span>낮음</span></td>
+                <td class="col-action"><button class="btn btn--secondary btn--sm">검토</button></td>
+              </tr>
+              <tr onclick="location.href='analysis.html'">
+                <td class="col-id">#0228</td>
+                <td class="col-time">07:22</td>
+                <td class="col-summary">민원 응대 관련 불친절 항의</td>
+                <td><span class="ai-suggest">청문감사<span class="ai-suggest__confidence">76%</span></span></td>
+                <td><span class="priority priority--high"><span class="priority__dot"></span>높음</span></td>
+                <td class="col-action"><button class="btn btn--secondary btn--sm">검토</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 공지사항 -->
+        <section class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+              공지사항
+            </div>
+          </div>
+          <div class="card__body" style="padding-top: var(--space-3);">
+            <div class="notice">
+              <div class="notice__item">
+                <span class="badge badge--ai notice__tag">업데이트</span>
+                <div class="notice__content">
+                  <span class="notice__title">분류 기준 데이터 v1.2 업데이트</span>
+                  <span class="notice__date">2026.05.27</span>
+                </div>
+              </div>
+              <div class="notice__item">
+                <span class="badge badge--warning notice__tag">점검</span>
+                <div class="notice__content">
+                  <span class="notice__title">시스템 정기점검 (5/30 02:00~05:00)</span>
+                  <span class="notice__date">2026.05.26</span>
+                </div>
+              </div>
+              <div class="notice__item">
+                <span class="badge badge--neutral notice__tag">매뉴얼</span>
+                <div class="notice__content">
+                  <span class="notice__title">사이버 사기 민원 처리 매뉴얼 공유</span>
+                  <span class="notice__date">2026.05.24</span>
+                </div>
+              </div>
+              <div class="notice__item">
+                <span class="badge badge--neutral notice__tag">매뉴얼</span>
+                <div class="notice__content">
+                  <span class="notice__title">타기관 이관 절차 가이드 v2.1</span>
+                  <span class="notice__date">2026.05.20</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // 테마 초기화 (페이지 로드 직후 즉시 적용)
+    (function() {
+      const saved = localStorage.getItem('ccas-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    // 토글 동작
+    document.getElementById('themeToggle').addEventListener('click', function() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('ccas-theme', next);
+    });
+  </script>
+</body>
+</html>

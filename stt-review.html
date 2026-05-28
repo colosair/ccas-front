@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CCAS - STT 결과 검토</title>
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .stt-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: var(--space-5);
+      align-items: start;
+    }
+
+    /* 전사문 카드 */
+    .transcript-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .transcript-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--color-divider);
+      background: var(--color-surface-alt);
+    }
+
+    .transcript-card__title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--fs-md);
+      font-weight: var(--fw-semibold);
+      color: var(--color-text-primary);
+    }
+
+    .transcript-card__title-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--color-ai);
+    }
+
+    .transcript-actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .transcript-toggle {
+      display: flex;
+      background: var(--color-bg);
+      border-radius: var(--radius-md);
+      padding: 2px;
+    }
+
+    .transcript-toggle button {
+      padding: 4px var(--space-3);
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-medium);
+      color: var(--color-text-secondary);
+      border-radius: var(--radius-sm);
+      transition: all 0.15s;
+    }
+
+    .transcript-toggle button.is-active {
+      background: var(--color-surface);
+      color: var(--color-text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .transcript-body {
+      padding: var(--space-5) var(--space-6);
+      max-height: 580px;
+      overflow-y: auto;
+    }
+
+    .transcript-line {
+      display: flex;
+      gap: var(--space-4);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--color-divider);
+      align-items: flex-start;
+    }
+
+    .transcript-line:last-child { border-bottom: none; }
+
+    .transcript-line__meta {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 80px;
+    }
+
+    .transcript-line__speaker {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      padding: 2px 6px;
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+    }
+
+    .transcript-line__speaker--officer {
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+    }
+
+    .transcript-line__speaker--citizen {
+      background: var(--color-human-subtle);
+      color: var(--color-human);
+    }
+
+    .transcript-line__time {
+      font-size: var(--fs-xs);
+      color: var(--color-text-tertiary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .transcript-line__text {
+      flex: 1;
+      font-size: var(--fs-md);
+      line-height: 1.7;
+      color: var(--color-text-primary);
+    }
+
+    .transcript-line__text[contenteditable="true"] {
+      outline: none;
+    }
+
+    .transcript-line__text[contenteditable="true"]:focus {
+      background: var(--color-warning-light);
+      border-radius: var(--radius-sm);
+      padding: 2px 6px;
+      margin: -2px -6px;
+    }
+
+    /* 수정된 표시 */
+    .edited-mark {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--color-human);
+      border-radius: 50%;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* 사이드 정보 패널 */
+    .info-stack { display: flex; flex-direction: column; gap: var(--space-4); }
+
+    .info-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) var(--space-5);
+    }
+
+    .info-card__title {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold);
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: var(--space-3);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .info-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: var(--fs-sm);
+      gap: var(--space-3);
+    }
+
+    .info-row__label {
+      color: var(--color-text-secondary);
+      flex-shrink: 0;
+    }
+
+    .info-row__value {
+      color: var(--color-text-primary);
+      font-weight: var(--fw-medium);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .info-card__hint {
+      font-size: var(--fs-xs);
+      color: var(--color-text-tertiary);
+      line-height: 1.6;
+      margin-top: var(--space-3);
+      padding-top: var(--space-3);
+      border-top: 1px dashed var(--color-divider);
+    }
+
+    /* 오디오 플레이어 */
+    .audio-player {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-ai-subtle);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-4);
+    }
+
+    .audio-player__play {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-ai);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .audio-player__info { flex: 1; min-width: 0; }
+
+    .audio-player__title {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold);
+      color: var(--color-text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .audio-player__time {
+      font-size: var(--fs-xs);
+      color: var(--color-text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 액션 바 */
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-6);
+      padding-top: var(--space-5);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .action-bar__hint {
+      font-size: var(--fs-sm);
+      color: var(--color-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .action-bar__buttons { display: flex; gap: var(--space-2); }
+
+    /* AI 알림 박스 */
+    .ai-notice {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-ai-subtle);
+      border-left: 3px solid var(--color-ai);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-4);
+    }
+
+    .ai-notice__icon {
+      flex-shrink: 0;
+      color: var(--color-ai);
+    }
+
+    .ai-notice__content { flex: 1; }
+
+    .ai-notice__title {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold);
+      color: var(--color-text-primary);
+      margin-bottom: 2px;
+    }
+
+    .ai-notice__desc {
+      font-size: var(--fs-xs);
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===== Top Bar ===== -->
+    <header class="topbar">
+      <a class="topbar__brand" href="index.html" aria-label="CCAS 홈으로 이동">
+        <div class="topbar__logo"><img src="images/logo.svg" alt="CCAS 로고"></div>
+        <div>
+          <span class="topbar__title">CCAS</span>
+          <span class="topbar__subtitle">민원분류지원시스템</span>
+        </div>
+      </a>
+      <div class="topbar__search">
+        <span class="topbar__search-scope">전체 ▾</span>
+        <input type="text" placeholder="민원번호, 키워드, 민원인명으로 검색">
+      </div>
+      <div class="topbar__right">
+        <button class="topbar__notification" aria-label="알림">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="topbar__notification-dot"></span>
+        </button>
+        <div class="topbar__user">
+          <div class="topbar__avatar">홍</div>
+          <div class="topbar__user-info">
+            <span class="topbar__user-name">홍길동 경위</span>
+            <span class="topbar__user-dept">○○경찰서 민원실</span>
+          </div>
+        </div>
+        <button class="theme-toggle" id="themeToggle" aria-label="테마 전환" title="라이트/다크 모드 전환">
+          <svg class="theme-toggle__icon--moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="theme-toggle__icon--sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <button class="topbar__logout" aria-label="로그아웃">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <div class="sidebar__section-title">업무</div>
+      <nav class="sidebar__menu">
+        <a class="sidebar__item" href="index.html">
+          <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+          홈
+        </a>
+        <a class="sidebar__item is-active" href="upload.html">
+          <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
+          신규 민원 등록
+        </a>
+        <a class="sidebar__item">
+          <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+          내 처리 민원
+          <span class="sidebar__badge">12</span>
+        </a>
+        <a class="sidebar__item">
+          <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          부서 민원
+        </a>
+      </nav>
+      <div class="sidebar__divider"></div>
+      <div class="sidebar__section-title">지원</div>
+      <nav class="sidebar__menu">
+        <a class="sidebar__item">
+          <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          도움말
+        </a>
+      </nav>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <main class="main">
+
+      <div class="page-header">
+        <div class="page-header__left">
+          <button class="page-header__back" onclick="location.href='upload.html'" aria-label="뒤로">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </button>
+          <h1 class="page-header__title">STT 결과 검토</h1>
+          <span class="page-header__case-id">#0234 · 임시</span>
+        </div>
+        <div class="page-header__actions">
+          <button class="btn btn--secondary btn--sm">원본 음성 다운로드</button>
+        </div>
+      </div>
+
+      <!-- Stepper -->
+      <div class="stepper">
+        <div class="stepper__step is-done">
+          <span class="stepper__num">✓</span>
+          <span>민원 입력</span>
+        </div>
+        <span class="stepper__arrow">›</span>
+        <div class="stepper__step is-current">
+          <span class="stepper__num">2</span>
+          <span>STT 검토</span>
+        </div>
+        <span class="stepper__arrow">›</span>
+        <div class="stepper__step">
+          <span class="stepper__num">3</span>
+          <span>AI 분석</span>
+        </div>
+        <span class="stepper__arrow">›</span>
+        <div class="stepper__step">
+          <span class="stepper__num">4</span>
+          <span>분류 확정</span>
+        </div>
+        <span class="stepper__arrow">›</span>
+        <div class="stepper__step">
+          <span class="stepper__num">5</span>
+          <span>이관 처리</span>
+        </div>
+      </div>
+
+      <!-- AI 안내 -->
+      <div class="ai-notice">
+        <div class="ai-notice__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="ai-notice__content">
+          <div class="ai-notice__title">AI가 4분 12초 분량의 통화를 텍스트로 변환했습니다</div>
+          <div class="ai-notice__desc">전사된 내용을 검토하시고, 부정확한 부분은 직접 수정한 뒤 AI 분석으로 진행해 주세요. 음성 톤·전문 용어·인명 등은 오인식이 발생할 수 있습니다.</div>
+        </div>
+      </div>
+
+      <div class="stt-layout">
+
+        <!-- 좌측: 전사문 -->
+        <section class="transcript-card">
+          <div class="transcript-card__header">
+            <div class="transcript-card__title">
+              <svg class="transcript-card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              전사문 (편집 가능)
+            </div>
+            <div class="transcript-actions">
+              <div class="transcript-toggle">
+                <button class="is-active">화자 구분</button>
+                <button>원본 텍스트</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="transcript-body">
+
+            <div class="transcript-line">
+              <div class="transcript-line__meta">
+                <span class="transcript-line__speaker transcript-line__speaker--officer">상담사</span>
+                <span class="transcript-line__time">00:00</span>
+              </div>
+              <div class="transcript-line__text" contenteditable="true">네, 안녕하세요. ○○경찰서 민원실입니다. 무엇을 도와드릴까요?</div>
+            </div>
+
+            <div class="transcript-line">
+              <div class="transcript-line__meta">
+                <span class="transcript-line__speaker transcript-line__speaker--citizen">민원인</span>
+                <span class="transcript-line__time">00:05</span>
+              </div>
+              <div class="transcript-line__text" contenteditable="true">아 저기, 제가 어제 중고나라에서 닌텐도 스위치를 25만원에 샀거든요. 그런데 돈을 보냈는데 물건이 안 와요. 연락도 안 되고요.</div>
+            </div>
+
+            <div class="transcript-line">
+              <div class="transcript-line__meta">
+                <span class="transcript-line__speaker transcript-line__speaker--officer">상담사</span>
+                <span class="transcript-line__time">00:21</span>
+              </div>
+              <div class="transcript-line__text" contenteditable="true">네, 안타까운 일이네요. 정확히 언제 송금을 하셨고, 판매자와 마지막으로 연락하신 게 언제인지 알 수 있을까요?</div>
+            </div>
+
+            <div class="transcript-line">
+              <div class="transcript-line__meta">
+                <span class="transcript-line__speaker transcript-line__speaker--citizen">민원인</span>
+                <span class="transcript-line__time">00:35</span>
+              </div>
+              <div class="transcript-line__text" contenteditable="true">송금은 어제 저녁 7시쯤 했어요. 5월 26일이요. 그 사람이 8시까지 보내준다고 했는데 그 이후로 카톡도 안 읽고, 전화도 안 받아요.<span class="edited-mark" title="담당자가 수정한 부분"></span></div>
+            </div>
+
+            <div class="transcript-line">
+              <div class="transcript-line__meta">
+                <span class="transcript-line__speaker transcript-line__speaker--officer">상담사</span>
+                <span class="transcript-line__time">00:52</span>
+              </div>
+              <div class="transcript-line__text" contenteditable="true">혹시 송금하신 계좌번호와 판매자 아이디, 거래했던 채팅 내용은 보관하고 계신가요?</div>
+            </div>
+
+            <div class="transcript-line">
+              <div class="transcript-line__meta">
+                <span class="transcript-line__speaker transcript-line__speaker--citizen">민원인</span>
+                <span class="transcript-line__time">01:04</span>
+              </div>
+              <div class="transcript-line__text" contenteditable="true">네 다 있어요. 캡쳐도 해뒀고요. 어떻게 해야 하나요? 신고를 어디다 해야 하는지 잘 모르겠어서요.</div>
+            </div>
+
+            <div class="transcript-line">
+              <div class="transcript-line__meta">
+                <span class="transcript-line__speaker transcript-line__speaker--officer">상담사</span>
+                <span class="transcript-line__time">01:18</span>
+              </div>
+              <div class="transcript-line__text" contenteditable="true">이런 인터넷 사기 건은 사이버수사대 소관입니다. 사이버범죄 신고시스템(ECRM)으로 신고하시는 것이 가장 빠르고요. 필요시 가까운 경찰서 민원실에 방문 접수도 가능합니다.</div>
+            </div>
+
+            <div class="transcript-line">
+              <div class="transcript-line__meta">
+                <span class="transcript-line__speaker transcript-line__speaker--citizen">민원인</span>
+                <span class="transcript-line__time">01:38</span>
+              </div>
+              <div class="transcript-line__text" contenteditable="true">아 그래요? 그러면 사이버수사대 연락처를 좀 알려주세요.</div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 우측: 메타 정보 -->
+        <aside class="info-stack">
+
+          <div class="audio-player">
+            <button class="audio-player__play" aria-label="재생">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <div class="audio-player__info">
+              <div class="audio-player__title">민원녹취_20260527_0234.mp3</div>
+              <div class="audio-player__time">00:00 / 04:12</div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card__title">파일 정보</div>
+            <div class="info-list">
+              <div class="info-row">
+                <span class="info-row__label">파일명</span>
+                <span class="info-row__value" style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">민원녹취_20260527_0234.mp3</span>
+              </div>
+              <div class="info-row">
+                <span class="info-row__label">길이</span>
+                <span class="info-row__value">4분 12초</span>
+              </div>
+              <div class="info-row">
+                <span class="info-row__label">크기</span>
+                <span class="info-row__value">3.8 MB</span>
+              </div>
+              <div class="info-row">
+                <span class="info-row__label">접수 채널</span>
+                <span class="info-row__value">112 (비긴급)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card__title">STT 처리 정보</div>
+            <div class="info-list">
+              <div class="info-row">
+                <span class="info-row__label">변환 모델</span>
+                <span class="info-row__value">Whisper-large-v3</span>
+              </div>
+              <div class="info-row">
+                <span class="info-row__label">처리 시간</span>
+                <span class="info-row__value">8.2초</span>
+              </div>
+              <div class="info-row">
+                <span class="info-row__label">평균 신뢰도</span>
+                <span class="info-row__value"><span class="badge badge--success">94.7%</span></span>
+              </div>
+              <div class="info-row">
+                <span class="info-row__label">담당자 수정</span>
+                <span class="info-row__value"><span class="badge badge--human">1건</span></span>
+              </div>
+            </div>
+            <div class="info-card__hint">
+              ⚠ 수정된 전사문은 AI 분석 단계의 정확도에 직접 반영됩니다.
+            </div>
+          </div>
+
+        </aside>
+
+      </div>
+
+      <!-- 액션 바 -->
+      <div class="action-bar">
+        <div class="action-bar__hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>다음 단계에서 AI가 자동으로 요약하고 분류 후보를 제안합니다</span>
+        </div>
+        <div class="action-bar__buttons">
+          <button class="btn btn--secondary" onclick="location.href='upload.html'">이전</button>
+          <button class="btn btn--primary" onclick="location.href='analysis.html'">
+            AI 분석 시작
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      const saved = localStorage.getItem('ccas-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    document.getElementById('themeToggle').addEventListener('click', function() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('ccas-theme', next);
+    });
+  </script>
+</body>
+</html>

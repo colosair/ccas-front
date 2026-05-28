@@ -1,0 +1,35 @@
+flowchart TB
+  officerLogin(["담당자 로그인"])
+  authApi["Backend: 인증 및 권한 확인"]
+  selectInput{"민원 입력 방식 선택"}
+  textInput["텍스트 직접 입력"]
+  audioUpload["녹취 파일 업로드"]
+  createCase["Backend: 민원 케이스 생성"]
+  stt["AI Server: STT 변환"]
+  confirmText["담당자: 원문 또는 STT 결과 확인"]
+  summary["AI Server: LLM 템플릿 요약"]
+  preprocess["AI Server: 개인정보, 민감정보, 누락정보 전처리"]
+  embedding["AI Server: 임베딩 생성"]
+  vectorSearch[("DB: pgvector 유사도 검색")]
+  topCandidates["AI Server: Top-N 후보 및 추천 근거 생성"]
+  saveAnalysis["Backend: AI 분석 결과 저장"]
+  review["Frontend: 담당자 검토 화면 표시"]
+  decision{"담당자 판단"}
+  accept["추천 수락"]
+  revise["결과 수정 또는 보완"]
+  externalAgency["타기관 판단 및 유관기관 선택"]
+  confirm["조직 또는 기관 선택 확정"]
+  draft["Backend: 이관 초안 생성"]
+  feedback[("DB: 피드백 데이터 저장")]
+  done(["처리 완료"])
+
+  officerLogin --> authApi --> selectInput
+  selectInput --> textInput --> createCase
+  selectInput --> audioUpload --> stt --> createCase
+  createCase --> confirmText --> summary --> preprocess --> embedding --> vectorSearch
+  vectorSearch --> topCandidates --> saveAnalysis --> review --> decision
+  decision -->|"추천 수락"| accept --> confirm
+  decision -->|"수정 필요"| revise --> confirm
+  decision -->|"타기관 이관"| externalAgency --> confirm
+  confirm --> draft --> feedback --> done
+  feedback -. "향후 분류 기준 개선" .-> vectorSearch
