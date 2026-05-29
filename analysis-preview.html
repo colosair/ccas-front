@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CCAS - 민원 분석 결과 [테마 프리뷰]</title>
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <style>
+    /* ── 폰트 ── */
+    @font-face {
+      font-family: 'Pretendard Variable';
+      font-weight: 45 920;
+      font-style: normal;
+      font-display: block;
+      src: url('./fonts/PretendardVariable.woff2') format('woff2-variations'),
+           url('./fonts/PretendardVariable.woff2') format('woff2');
+    }
+
+    /* ── 변수 ── */
+    :root {
+      /* 공통 표면 */
+      --color-bg:            #F0F2F5;
+      --color-surface:       #FFFFFF;
+      --color-surface-alt:   #F8F9FA;
+      --color-border:        #E5E7EB;
+      --color-border-strong: #D1D5DB;
+      --color-divider:       #F0F1F3;
+
+      /* 텍스트 */
+      --color-text-primary:   #111827;
+      --color-text-secondary: #6B7280;
+      --color-text-tertiary:  #9CA3AF;
+      --color-text-on-dark:   #E2E8F0;
+
+      /* 브랜드 – 다크 네이비 */
+      --color-navy:        #0D1B3E;
+      --color-navy-mid:    #132044;
+      --color-navy-card:   #0F2044;
+      --color-navy-item:   rgba(255,255,255,0.08);
+      --color-navy-hover:  rgba(255,255,255,0.05);
+      --color-navy-border: rgba(255,255,255,0.10);
+
+      /* 골드 액센트 */
+      --color-gold:        #D4A017;
+      --color-gold-bright: #EAB308;
+      --color-gold-light:  rgba(212,160,23,0.18);
+
+      /* AI / 인간 */
+      --color-ai:          #2563EB;
+      --color-ai-light:    #DBEAFE;
+      --color-ai-subtle:   #EFF6FF;
+      --color-human:       #D97706;
+      --color-human-light: #FED7AA;
+      --color-human-subtle:#FFF7ED;
+
+      /* 상태 */
+      --color-success:        #059669;
+      --color-success-light:  #D1FAE5;
+      --color-success-subtle: #ECFDF5;
+      --color-danger:         #DC2626;
+      --color-danger-light:   #FEE2E2;
+      --color-warning:        #CA8A04;
+      --color-warning-light:  #FEF3C7;
+
+      /* 타이포 */
+      --font-sans: 'Pretendard Variable', -apple-system, BlinkMacSystemFont,
+                   'Apple SD Gothic Neo', 'Malgun Gothic', 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', Consolas, monospace;
+
+      --fs-xs:  11px;
+      --fs-sm:  12px;
+      --fs-base:13px;
+      --fs-md:  14px;
+      --fs-lg:  15px;
+      --fs-xl:  17px;
+      --fs-2xl: 20px;
+      --fs-3xl: 24px;
+
+      --fw-regular:  400;
+      --fw-medium:   500;
+      --fw-semibold: 600;
+      --fw-bold:     700;
+
+      /* 레이아웃 */
+      --topbar-height:  64px;
+      --sidebar-width:  220px;
+      --radius-sm: 3px;
+      --radius-md: 6px;
+      --radius-lg: 10px;
+
+      --shadow-sm: 0 1px 3px rgba(15,23,42,0.06);
+      --shadow-md: 0 2px 8px rgba(15,23,42,0.08);
+      --shadow-lg: 0 8px 24px rgba(15,23,42,0.12);
+
+      --space-1: 4px;  --space-2: 8px;  --space-3: 12px;
+      --space-4: 16px; --space-5: 20px; --space-6: 24px;
+      --space-8: 32px; --space-10: 40px;
+    }
+
+    /* ── 리셋 ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { overflow-y: scroll; scrollbar-gutter: stable; }
+    html, body {
+      height: 100%;
+      font-family: var(--font-sans);
+      font-size: var(--fs-base);
+      color: var(--color-text-primary);
+      background: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ══════════════════════════════════════
+       앱 레이아웃
+    ══════════════════════════════════════ */
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) 1fr;
+      grid-template-rows: var(--topbar-height) 1fr;
+      grid-template-areas:
+        "sidebar topbar"
+        "sidebar main";
+      min-height: 100vh;
+    }
+
+    /* ══════════════════════════════════════
+       사이드바 (다크 네이비)
+    ══════════════════════════════════════ */
+    .sidebar {
+      grid-area: sidebar;
+      background: var(--color-navy);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    /* 브랜드 영역 */
+    .sidebar__brand {
+      padding: var(--space-5) var(--space-4) var(--space-4);
+      border-bottom: 1px solid var(--color-navy-border);
+    }
+
+    .sidebar__brand-label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      color: var(--color-gold);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: var(--space-2);
+    }
+
+    .sidebar__brand-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .sidebar__brand-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+      flex-shrink: 0;
+    }
+
+    .sidebar__brand-title {
+      font-size: var(--fs-2xl);
+      font-weight: var(--fw-bold);
+      color: #FFFFFF;
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+
+    .sidebar__brand-sub {
+      font-size: var(--fs-xs);
+      color: rgba(255,255,255,0.45);
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    /* 섹션 타이틀 */
+    .sidebar__section-title {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: var(--space-3) var(--space-4) var(--space-2);
+      margin-top: var(--space-3);
+    }
+
+    .sidebar__section-title:first-of-type { margin-top: var(--space-2); }
+
+    .sidebar__menu {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 0 var(--space-2);
+    }
+
+    .sidebar__item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      font-size: var(--fs-md);
+      color: rgba(255,255,255,0.60);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+      position: relative;
+    }
+
+    .sidebar__item:hover {
+      background: var(--color-navy-hover);
+      color: rgba(255,255,255,0.85);
+    }
+
+    .sidebar__item.is-active {
+      background: var(--color-navy-item);
+      color: #FFFFFF;
+      font-weight: var(--fw-semibold);
+    }
+
+    .sidebar__item.is-active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 3px;
+      background: var(--color-gold);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .sidebar__icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.75;
+    }
+
+    .sidebar__item.is-active .sidebar__icon { opacity: 1; }
+
+    .sidebar__badge {
+      margin-left: auto;
+      background: var(--color-danger);
+      color: white;
+      font-size: 10px;
+      font-weight: var(--fw-semibold);
+      padding: 1px 6px;
+      border-radius: 8px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .sidebar__divider {
+      height: 1px;
+      background: var(--color-navy-border);
+      margin: var(--space-3) var(--space-4);
+    }
+
+    /* Human-in-the-loop 박스 */
+    .sidebar__hitl {
+      margin: auto var(--space-3) var(--space-4);
+      padding: var(--space-3) var(--space-4);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--color-navy-border);
+      border-radius: var(--radius-md);
+    }
+
+    .sidebar__hitl-title {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-bold);
+      color: var(--color-gold);
+      margin-bottom: var(--space-1);
+    }
+
+    .sidebar__hitl-desc {
+      font-size: var(--fs-xs);
+      color: rgba(255,255,255,0.40);
+      line-height: 1.55;
+    }
+
+    /* ══════════════════════════════════════
+       탑바 (화이트 – 제목 중심)
+    ══════════════════════════════════════ */
+    .topbar {
+      grid-area: topbar;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-6);
+      z-index: 10;
+      gap: var(--space-4);
+    }
+
+    .topbar__left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .topbar__breadcrumb {
+      font-size: var(--fs-xs);
+      color: var(--color-text-tertiary);
+    }
+
+    .topbar__breadcrumb span { margin: 0 4px; }
+
+    .topbar__page-title {
+      font-size: var(--fs-xl);
+      font-weight: var(--fw-bold);
+      color: var(--color-text-primary);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topbar__right {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex-shrink: 0;
+    }
+
+    /* 상태 배지 (탑바) */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-medium);
+      white-space: nowrap;
+    }
+
+    .status-pill__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-pill--success {
+      background: var(--color-success-light);
+      color: var(--color-success);
+    }
+    .status-pill--success .status-pill__dot { background: var(--color-success); }
+
+    .status-pill--warning {
+      background: var(--color-warning-light);
+      color: var(--color-warning);
+    }
+    .status-pill--warning .status-pill__dot { background: var(--color-warning); }
+
+    /* ── 버튼 (미니 시스템) ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 34px;
+      padding: 0 var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: var(--fs-md);
+      font-weight: var(--fw-medium);
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .btn--navy {
+      background: var(--color-navy);
+      color: #FFFFFF;
+    }
+    .btn--navy:hover { opacity: 0.88; }
+    .btn--secondary {
+      background: var(--color-surface);
+      color: var(--color-text-secondary);
+      border: 1px solid var(--color-border);
+    }
+    .btn--secondary:hover { background: var(--color-bg); }
+    .btn--human {
+      background: var(--color-human);
+      color: #FFFFFF;
+    }
+    .btn--human:hover { opacity: 0.88; }
+    .btn--danger {
+      background: var(--color-surface);
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger-light);
+    }
+    .btn--danger:hover { background: var(--color-danger-light); }
+    .btn--ghost {
+      background: transparent;
+      color: var(--color-ai);
+    }
+    .btn--ghost:hover { background: var(--color-ai-subtle); }
+    .btn--lg { height: 40px; padding: 0 var(--space-5); font-size: var(--fs-lg); }
+    .btn--sm { height: 28px; padding: 0 var(--space-3); font-size: var(--fs-sm); }
+
+    /* ══════════════════════════════════════
+       메인 콘텐츠
+    ══════════════════════════════════════ */
+    .main {
+      grid-area: main;
+      padding: var(--space-5) var(--space-6);
+      overflow-y: auto;
+      min-width: 0;
+    }
+
+    /* ── 케이스 메타 바 ── */
+    .case-meta-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-4);
+      overflow: hidden;
+    }
+
+    .case-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: var(--space-3) var(--space-4);
+      border-right: 1px solid var(--color-border);
+    }
+
+    .case-meta-item:last-child { border-right: none; }
+
+    .case-meta-label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      color: var(--color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .case-meta-value {
+      font-size: var(--fs-md);
+      font-weight: var(--fw-semibold);
+      color: var(--color-text-primary);
+    }
+
+    /* ── 처리 흐름 스테퍼 (다크) ── */
+    .stepper {
+      background: var(--color-navy-card);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) var(--space-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+      overflow-x: auto;
+    }
+
+    .stepper__track {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex: 1;
+    }
+
+    .stepper__step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 72px;
+    }
+
+    .stepper__dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-bold);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stepper__dot--done {
+      background: var(--color-gold);
+      color: var(--color-navy);
+    }
+
+    .stepper__dot--current {
+      background: transparent;
+      border: 2px solid var(--color-gold);
+      color: var(--color-gold);
+    }
+
+    .stepper__dot--pending {
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.35);
+    }
+
+    .stepper__label {
+      font-size: var(--fs-xs);
+      white-space: nowrap;
+    }
+
+    .stepper__label--done    { color: rgba(255,255,255,0.55); }
+    .stepper__label--current { color: var(--color-gold); font-weight: var(--fw-semibold); }
+    .stepper__label--pending { color: rgba(255,255,255,0.30); }
+
+    .stepper__line {
+      flex: 1;
+      height: 2px;
+      margin: 0;
+      align-self: center;
+      margin-bottom: 20px;
+    }
+
+    .stepper__line--done    { background: var(--color-gold); opacity: 0.6; }
+    .stepper__line--pending { background: rgba(255,255,255,0.12); }
+
+    /* ── 3열 분석 그리드 ── */
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr 1fr;
+      gap: var(--space-4);
+      align-items: start;
+      margin-bottom: var(--space-4);
+    }
+
+    /* 공통 카드 */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-divider);
+      background: var(--color-surface-alt);
+    }
+
+    .card__title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--fs-md);
+      font-weight: var(--fw-semibold);
+    }
+
+    .card__body { padding: var(--space-4); }
+
+    /* ── STT 소스 카드 ── */
+    .source-card { }
+
+    .source-card__header-label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      color: var(--color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .source-card__header-title {
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-bold);
+      color: var(--color-text-primary);
+      margin-top: 2px;
+    }
+
+    .source-filename {
+      font-size: var(--fs-sm);
+      color: var(--color-text-secondary);
+      font-family: var(--font-mono);
+      background: var(--color-bg);
+      padding: 4px var(--space-3);
+      border-radius: var(--radius-sm);
+      margin: var(--space-3) 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .source-body {
+      padding: var(--space-3) var(--space-4);
+      max-height: 440px;
+      overflow-y: auto;
+    }
+
+    .source-section-label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      color: var(--color-ai);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: var(--space-2);
+    }
+
+    .source-line {
+      display: flex;
+      gap: var(--space-2);
+      padding: 6px 0;
+      font-size: var(--fs-sm);
+      line-height: 1.6;
+      border-bottom: 1px solid var(--color-divider);
+    }
+
+    .source-line:last-child { border-bottom: none; }
+
+    .source-line__time {
+      font-size: var(--fs-xs);
+      color: var(--color-text-tertiary);
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+      padding-top: 2px;
+      min-width: 36px;
+    }
+
+    .source-line__text { flex: 1; color: var(--color-text-primary); }
+
+    .source-card__footer {
+      display: flex;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+      border-top: 1px solid var(--color-divider);
+    }
+
+    /* ── AI 요약 카드 ── */
+    .ai-card {
+      border-top: 3px solid var(--color-ai);
+    }
+
+    .ai-card__header {
+      background: var(--color-ai-subtle);
+      border-bottom: 1px solid var(--color-ai-light);
+    }
+
+    .ai-card__title {
+      color: var(--color-ai);
+      font-weight: var(--fw-bold);
+    }
+
+    .ai-card__label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      color: var(--color-ai);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .summary-block {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--color-divider);
+      align-items: flex-start;
+    }
+
+    .summary-block:last-child { border-bottom: none; }
+
+    .summary-label {
+      font-size: var(--fs-xs);
+      color: var(--color-text-tertiary);
+      font-weight: var(--fw-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding-top: 2px;
+    }
+
+    .summary-value {
+      font-size: var(--fs-md);
+      color: var(--color-text-primary);
+      line-height: 1.55;
+    }
+
+    .keywords {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .kw-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      font-size: var(--fs-xs);
+      color: var(--color-text-secondary);
+      font-weight: var(--fw-medium);
+    }
+
+    .kw-chip::before { content: '#'; color: var(--color-text-tertiary); margin-right: 2px; }
+
+    /* ── 분류·라우팅 카드 (다크) ── */
+    .routing-card {
+      background: var(--color-navy-card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      color: var(--color-text-on-dark);
+    }
+
+    .routing-card__header {
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .routing-card__label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      color: var(--color-gold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .routing-card__title {
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-bold);
+      color: #FFFFFF;
+      margin-top: 2px;
+    }
+
+    .routing-card__body { padding: var(--space-4); }
+
+    /* 후보 항목 */
+    .candidate {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      margin-bottom: var(--space-2);
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+
+    .candidate:last-child { margin-bottom: 0; }
+
+    .candidate:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .candidate.is-selected {
+      background: var(--color-gold-light);
+      border-color: var(--color-gold);
+    }
+
+    .candidate__top-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+    }
+
+    .candidate__name {
+      font-size: var(--fs-md);
+      font-weight: var(--fw-semibold);
+      color: #FFFFFF;
+      flex: 1;
+    }
+
+    .candidate__pct {
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-bold);
+      color: var(--color-gold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .candidate__sub {
+      font-size: var(--fs-xs);
+      color: rgba(255,255,255,0.45);
+      margin-bottom: var(--space-2);
+    }
+
+    .sim-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .sim-bar__fill {
+      height: 100%;
+      background: var(--color-gold);
+      border-radius: 2px;
+    }
+
+    .candidate.is-selected .sim-bar__fill { background: var(--color-gold-bright); }
+
+    /* 선택 기관 표시 */
+    .routing-selection {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-2) var(--space-3);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: var(--radius-md);
+      margin-top: var(--space-3);
+      font-size: var(--fs-sm);
+    }
+
+    .routing-selection__label { color: rgba(255,255,255,0.45); }
+    .routing-selection__value { color: #FFFFFF; font-weight: var(--fw-semibold); }
+
+    .routing-card__footer {
+      display: flex;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* 유사 사례 / 이관 초안 미니 카드 */
+    .mini-card-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
+      padding: 0 var(--space-4) var(--space-3);
+    }
+
+    .mini-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+    }
+
+    .mini-card__label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      color: var(--color-ai);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-1);
+    }
+
+    .mini-card--transfer .mini-card__label { color: var(--color-gold); }
+
+    .mini-card__content {
+      font-size: var(--fs-xs);
+      color: rgba(255,255,255,0.50);
+      line-height: 1.5;
+    }
+
+    .mini-card__chip {
+      display: inline-block;
+      padding: 1px 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      font-size: var(--fs-xs);
+      color: rgba(255,255,255,0.55);
+      margin: 2px 2px 0 0;
+    }
+
+    /* ── 배지 ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      white-space: nowrap;
+    }
+
+    .badge--success { background: var(--color-success-light); color: var(--color-success); }
+    .badge--warning { background: var(--color-warning-light); color: var(--color-warning); }
+    .badge--ai      { background: var(--color-ai-light);      color: var(--color-ai); }
+    .badge--neutral { background: var(--color-bg); color: var(--color-text-secondary); border: 1px solid var(--color-border); }
+
+    .badge--dot::before {
+      content: '';
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── 액션 바 (sticky 하단) ── */
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-3) var(--space-5);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      position: sticky;
+      bottom: var(--space-4);
+      box-shadow: var(--shadow-md);
+      margin-top: var(--space-4);
+    }
+
+    .action-bar__status { display: flex; align-items: center; gap: var(--space-3); }
+    .action-bar__label { font-size: var(--fs-xs); color: var(--color-text-tertiary); }
+    .action-bar__value { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--color-human); }
+    .action-bar__buttons { display: flex; gap: var(--space-2); }
+
+    /* ── 반응형 ── */
+    @media (max-width: 1100px) {
+      .analysis-grid { grid-template-columns: 1fr 1fr; }
+      .routing-card  { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; grid-template-areas: "topbar" "main"; }
+      .sidebar { display: none; }
+      .analysis-grid { grid-template-columns: 1fr; }
+      .case-meta-bar { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ 사이드바 (다크 네이비) ══ -->
+  <aside class="sidebar">
+
+    <div class="sidebar__brand">
+      <div class="sidebar__brand-label">TEAM FIX · CCAS</div>
+      <div class="sidebar__brand-row">
+        <img class="sidebar__brand-logo" src="images/logo.svg" alt="CCAS">
+        <span class="sidebar__brand-title">CCAS</span>
+      </div>
+      <div class="sidebar__brand-sub">Civil Complaint Assistance System</div>
+    </div>
+
+    <div class="sidebar__section-title">민원 분석 결과</div>
+    <nav class="sidebar__menu">
+      <a class="sidebar__item" href="index.html">
+        <span class="sidebar__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        대시보드
+      </a>
+      <a class="sidebar__item" href="upload.html">
+        <span class="sidebar__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </span>
+        녹취 업로드
+      </a>
+      <a class="sidebar__item" href="#">
+        <span class="sidebar__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        유사 사례 검색
+      </a>
+      <a class="sidebar__item is-active">
+        <span class="sidebar__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </span>
+        이관 초안 관리
+        <span class="sidebar__badge">3</span>
+      </a>
+      <a class="sidebar__item" href="#">
+        <span class="sidebar__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        피드백 데이터
+      </a>
+    </nav>
+
+    <!-- Human-in-the-loop -->
+    <div class="sidebar__hitl">
+      <div class="sidebar__hitl-title">Human-in-the-loop</div>
+      <div class="sidebar__hitl-desc">AI는 정리·추천만 수행하고 최종 확정은 담당자가 합니다.</div>
+    </div>
+
+  </aside>
+
+  <!-- ══ 탑바 ══ -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <div class="topbar__breadcrumb">
+        민원분류지원시스템
+        <span>/</span>
+        분석 결과 상세
+      </div>
+      <div class="topbar__page-title">도로 파손 및 차량 통행 불편 신고</div>
+    </div>
+    <div class="topbar__right">
+      <span class="status-pill status-pill--success">
+        <span class="status-pill__dot"></span>
+        분석 완료
+      </span>
+      <span class="status-pill status-pill--warning">
+        <span class="status-pill__dot"></span>
+        Code 4
+      </span>
+      <button class="btn btn--navy">확정 저장</button>
+    </div>
+  </header>
+
+  <!-- ══ 메인 ══ -->
+  <main class="main">
+
+    <!-- 케이스 메타 바 -->
+    <div class="case-meta-bar">
+      <div class="case-meta-item">
+        <span class="case-meta-label">CASE ID</span>
+        <span class="case-meta-value">CCAS-0427</span>
+      </div>
+      <div class="case-meta-item">
+        <span class="case-meta-label">접수 채널</span>
+        <span class="case-meta-value">전화 민원 / 녹취 업로드</span>
+      </div>
+      <div class="case-meta-item">
+        <span class="case-meta-label">처리 상태</span>
+        <span class="case-meta-value">담당자 검토 대기</span>
+      </div>
+      <div class="case-meta-item">
+        <span class="case-meta-label">1차 추천 기관</span>
+        <span class="case-meta-value">지자체 도로관리과</span>
+      </div>
+    </div>
+
+    <!-- 처리 흐름 (다크 스테퍼) -->
+    <div class="stepper">
+      <div class="stepper__track">
+        <div class="stepper__step">
+          <div class="stepper__dot stepper__dot--done">✓</div>
+          <span class="stepper__label stepper__label--done">녹취 업로드</span>
+        </div>
+        <div class="stepper__line stepper__line--done"></div>
+        <div class="stepper__step">
+          <div class="stepper__dot stepper__dot--done">✓</div>
+          <span class="stepper__label stepper__label--done">STT 전사</span>
+        </div>
+        <div class="stepper__line stepper__line--done"></div>
+        <div class="stepper__step">
+          <div class="stepper__dot stepper__dot--done">✓</div>
+          <span class="stepper__label stepper__label--done">AI 요약</span>
+        </div>
+        <div class="stepper__line stepper__line--done"></div>
+        <div class="stepper__step">
+          <div class="stepper__dot stepper__dot--done">✓</div>
+          <span class="stepper__label stepper__label--done">벡터 검색</span>
+        </div>
+        <div class="stepper__line stepper__line--done"></div>
+        <div class="stepper__step">
+          <div class="stepper__dot stepper__dot--done">✓</div>
+          <span class="stepper__label stepper__label--done">이관 후보</span>
+        </div>
+        <div class="stepper__line stepper__line--pending"></div>
+        <div class="stepper__step">
+          <div class="stepper__dot stepper__dot--current">6</div>
+          <span class="stepper__label stepper__label--current">담당자 검토</span>
+        </div>
+        <div class="stepper__line stepper__line--pending"></div>
+        <div class="stepper__step">
+          <div class="stepper__dot stepper__dot--pending">7</div>
+          <span class="stepper__label stepper__label--pending">확정</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3열 분석 그리드 -->
+    <div class="analysis-grid">
+
+      <!-- 왼쪽: STT Source -->
+      <section class="card source-card">
+        <div class="card__header">
+          <div>
+            <div class="source-card__header-label">STT SOURCE</div>
+            <div class="source-card__header-title">원문 녹취 · 전사문</div>
+          </div>
+        </div>
+        <div style="padding: var(--space-3) var(--space-4);">
+          <div style="font-size: var(--fs-xs); color: var(--color-text-tertiary); margin-bottom: 4px;">원문 파일</div>
+          <div class="source-filename">call_2026_0427_1132.wav</div>
+        </div>
+        <div class="source-body">
+          <div class="source-section-label">전사문</div>
+          <div class="source-line">
+            <span class="source-line__time">00:00:03</span>
+            <span class="source-line__text">아파트 진입로 쪽 도로가 많이 파손되어 있습니다.</span>
+          </div>
+          <div class="source-line">
+            <span class="source-line__time">00:00:18</span>
+            <span class="source-line__text">차량 하부가 긁혔고, 보행자도 넘어질 위험이 있어 보입니다.</span>
+          </div>
+          <div class="source-line">
+            <span class="source-line__time">00:00:36</span>
+            <span class="source-line__text">어디에 연락해야 하는지 몰라서 문의드립니다.</span>
+          </div>
+        </div>
+        <div class="source-card__footer">
+          <button class="btn btn--secondary btn--sm">전사문 수정</button>
+          <button class="btn btn--secondary btn--sm">원문 듣기</button>
+        </div>
+      </section>
+
+      <!-- 가운데: AI Summary -->
+      <section class="card ai-card">
+        <div class="card__header ai-card__header">
+          <div>
+            <div class="ai-card__label">AI SUMMARY</div>
+            <div class="card__title ai-card__title">민원 내용 구조화 결과</div>
+          </div>
+          <span class="badge badge--ai badge--dot">처리 완료</span>
+        </div>
+        <div class="card__body">
+          <p style="font-size: var(--fs-md); color: var(--color-text-primary); line-height: 1.65; margin-bottom: var(--space-3);">
+            민원인은 아파트 진입로 인근 도로 파손으로 인해 차량 손상과 보행 위험이 발생하고 있다고 신고했습니다. 현장 확인 및 보수 담당 기관 안내를 요청하고 있습니다.
+          </p>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--space-3);">
+            <span class="badge badge--neutral">도로 파손</span>
+            <span class="badge badge--neutral">차량 통행</span>
+            <span class="badge badge--neutral">보행 위험</span>
+            <span class="badge badge--warning">비긴급</span>
+          </div>
+
+          <div style="font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--color-ai); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: var(--space-2);">EXTRACTED INFORMATION</div>
+          <div style="font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--color-text-primary); margin-bottom: var(--space-3);">핵심 추출 정보</div>
+
+          <div class="summary-block">
+            <span class="summary-label">발생 장소</span>
+            <span class="summary-value">OO아파트 진입로 앞</span>
+          </div>
+          <div class="summary-block">
+            <span class="summary-label">요청 사항</span>
+            <span class="summary-value">현장 확인 · 보수 안내</span>
+          </div>
+          <div class="summary-block">
+            <span class="summary-label">검토 쟁점</span>
+            <span class="summary-value">기관 이관 필요 여부</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 오른쪽: Classification & Routing (다크) -->
+      <section class="routing-card">
+        <div class="routing-card__header">
+          <div class="routing-card__label">CLASSIFICATION · ROUTING</div>
+          <div class="routing-card__title">분류 후보 선택</div>
+        </div>
+        <div class="routing-card__body">
+
+          <div class="candidate is-selected" onclick="selectCandidate(this, '지자체 도로관리과')">
+            <div class="candidate__top-row">
+              <span class="candidate__name">지자체 도로관리과</span>
+              <span class="candidate__pct">86%</span>
+            </div>
+            <div class="candidate__sub">도로 파손 · 보수 요청 · 통행 불편 키워드 일치</div>
+            <div class="sim-bar"><div class="sim-bar__fill" style="width:86%"></div></div>
+          </div>
+
+          <div class="candidate" onclick="selectCandidate(this, '안전신문고')">
+            <div class="candidate__top-row">
+              <span class="candidate__name">안전신문고</span>
+              <span class="candidate__pct" style="color:rgba(255,255,255,0.5)">72%</span>
+            </div>
+            <div class="candidate__sub">안전 위험 신고 채널 매칭</div>
+            <div class="sim-bar"><div class="sim-bar__fill" style="width:72%; opacity:0.5"></div></div>
+          </div>
+
+          <div class="candidate" onclick="selectCandidate(this, '구청 민원실')">
+            <div class="candidate__top-row">
+              <span class="candidate__name">구청 민원실</span>
+              <span class="candidate__pct" style="color:rgba(255,255,255,0.4)">68%</span>
+            </div>
+            <div class="candidate__sub">지역 민원 일반 처리 채널</div>
+            <div class="sim-bar"><div class="sim-bar__fill" style="width:68%; opacity:0.35"></div></div>
+          </div>
+
+          <div class="routing-selection">
+            <span class="routing-selection__label">선택 기관</span>
+            <span class="routing-selection__value" id="selectedAgency">지자체 도로관리과</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: var(--space-2); padding: 0 var(--space-4) var(--space-3);">
+          <button class="btn btn--sm" style="flex:1; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); border-radius:var(--radius-md);">후보 수정</button>
+          <button class="btn btn--sm" style="flex:1; background:var(--color-gold); color:var(--color-navy); font-weight:var(--fw-bold); border-radius:var(--radius-md);">선택 적용</button>
+        </div>
+
+        <!-- 유사 사례 / 이관 초안 미니 -->
+        <div class="mini-card-row">
+          <div class="mini-card">
+            <div class="mini-card__label">SIMILAR CASES</div>
+            <div style="font-size: var(--fs-md); font-weight: var(--fw-bold); color: #FFFFFF; margin-bottom: var(--space-2);">유사 사례</div>
+            <div class="mini-card__content">
+              <span class="mini-card__chip">포트홀 민원</span>
+              <span class="mini-card__chip">보도블록 신고</span>
+            </div>
+          </div>
+          <div class="mini-card mini-card--transfer">
+            <div class="mini-card__label">TRANSFER DRAFT</div>
+            <div style="font-size: var(--fs-md); font-weight: var(--fw-bold); color: #FFFFFF; margin-bottom: var(--space-2);">이관 초안</div>
+            <div class="mini-card__content" style="margin-bottom: var(--space-2);">도로 파손으로 인한 차량 통행 불편 및 보행 위험 민원입니다.</div>
+            <div style="display: flex; gap: var(--space-2);">
+              <button class="btn btn--sm" style="background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.6); border-radius:var(--radius-md);">수정</button>
+              <button class="btn btn--sm" style="background:var(--color-gold); color:var(--color-navy); font-weight:var(--fw-bold); border-radius:var(--radius-md);">확정</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 액션 바 -->
+    <div class="action-bar">
+      <div class="action-bar__status">
+        <div>
+          <div class="action-bar__label">현재 선택</div>
+          <div class="action-bar__value" id="actionSelectedDisplay">지자체 도로관리과</div>
+        </div>
+      </div>
+      <div class="action-bar__buttons">
+        <button class="btn btn--secondary">이전</button>
+        <button class="btn btn--danger">반려</button>
+        <button class="btn btn--human btn--lg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          분류 확정 및 이관 초안 생성
+        </button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  function selectCandidate(el, agency) {
+    document.querySelectorAll('.candidate').forEach(c => c.classList.remove('is-selected'));
+    el.classList.add('is-selected');
+    document.getElementById('selectedAgency').textContent = agency;
+    document.getElementById('actionSelectedDisplay').textContent = agency;
+  }
+</script>
+</body>
+</html>

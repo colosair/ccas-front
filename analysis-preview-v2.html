@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CCAS - AI 분석 결과 [테마 프리뷰 v2]</title>
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <style>
+    /* ── 폰트 ── */
+    @font-face {
+      font-family: 'Pretendard Variable';
+      font-weight: 45 920;
+      font-style: normal;
+      font-display: block;
+      src: url('./fonts/PretendardVariable.woff2') format('woff2-variations'),
+           url('./fonts/PretendardVariable.woff2') format('woff2');
+    }
+
+    /* ══════════════════════════════════════
+       변수 — 새 테마
+    ══════════════════════════════════════ */
+    :root {
+      /* 표면 */
+      --color-bg:            #F0F2F5;
+      --color-surface:       #FFFFFF;
+      --color-surface-alt:   #F8F9FA;
+      --color-border:        #E5E7EB;
+      --color-border-strong: #D1D5DB;
+      --color-divider:       #F0F1F3;
+
+      /* 텍스트 */
+      --color-text-primary:   #111827;
+      --color-text-secondary: #6B7280;
+      --color-text-tertiary:  #9CA3AF;
+
+      /* 브랜드 — 다크 네이비 */
+      --color-navy:        #0D1B3E;
+      --color-navy-card:   #0F2044;
+      --color-navy-item:   rgba(255,255,255,0.08);
+      --color-navy-hover:  rgba(255,255,255,0.05);
+      --color-navy-border: rgba(255,255,255,0.10);
+
+      /* 골드 액센트 */
+      --color-gold:        #D4A017;
+      --color-gold-bright: #EAB308;
+      --color-gold-light:  rgba(212,160,23,0.18);
+
+      /* 의미 컬러 (기존 체계 유지) */
+      --color-primary:        #1E3A8A;
+      --color-primary-subtle: #EFF6FF;
+      --color-ai:             #2563EB;
+      --color-ai-light:       #DBEAFE;
+      --color-ai-subtle:      #EFF6FF;
+      --color-human:          #D97706;
+      --color-human-light:    #FED7AA;
+      --color-human-subtle:   #FFF7ED;
+      --color-success:        #059669;
+      --color-success-light:  #D1FAE5;
+      --color-success-subtle: #ECFDF5;
+      --color-danger:         #DC2626;
+      --color-danger-light:   #FEE2E2;
+      --color-warning:        #CA8A04;
+      --color-warning-light:  #FEF3C7;
+
+      /* 타이포 */
+      --font-sans: 'Pretendard Variable', -apple-system, BlinkMacSystemFont,
+                   'Apple SD Gothic Neo', 'Malgun Gothic', 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', Consolas, monospace;
+
+      --fs-xs:11px; --fs-sm:12px; --fs-base:13px; --fs-md:14px;
+      --fs-lg:15px; --fs-xl:17px; --fs-2xl:20px; --fs-3xl:24px;
+      --fw-regular:400; --fw-medium:500; --fw-semibold:600; --fw-bold:700;
+
+      /* 레이아웃 */
+      --topbar-height: 52px;
+      --sidebar-width: 220px;
+      --radius-sm:3px; --radius-md:6px; --radius-lg:10px;
+      --shadow-sm: 0 1px 3px rgba(15,23,42,0.06);
+      --shadow-md: 0 2px 8px rgba(15,23,42,0.08);
+      --shadow-lg: 0 8px 24px rgba(15,23,42,0.12);
+
+      --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+      --space-5:20px; --space-6:24px; --space-8:32px; --space-10:40px;
+    }
+
+    /* ── 리셋 ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { overflow-y: scroll; scrollbar-gutter: stable; }
+    html, body {
+      height: 100%;
+      font-family: var(--font-sans);
+      font-size: var(--fs-base);
+      color: var(--color-text-primary);
+      background: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: 'tnum' 1;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ══════════════════════════════════════
+       앱 레이아웃 — 사이드바가 풀하이트(브랜드 포함)
+    ══════════════════════════════════════ */
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) 1fr;
+      grid-template-rows: var(--topbar-height) 1fr;
+      grid-template-areas:
+        "sidebar topbar"
+        "sidebar main";
+      min-height: 100vh;
+    }
+
+    /* ── 버튼 시스템 (기존과 동일) ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 34px; padding: 0 var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: var(--fs-md); font-weight: var(--fw-medium);
+      font-family: inherit; cursor: pointer; border: none;
+      transition: opacity 0.15s, background 0.15s; white-space: nowrap;
+    }
+    .btn--primary   { background: var(--color-primary); color: #fff; }
+    .btn--primary:hover { opacity: 0.9; }
+    .btn--secondary { background: var(--color-surface); color: var(--color-text-secondary); border: 1px solid var(--color-border); }
+    .btn--secondary:hover { background: var(--color-bg); }
+    .btn--human     { background: var(--color-human); color: #fff; }
+    .btn--human:hover { opacity: 0.9; }
+    .btn--danger    { background: var(--color-surface); color: var(--color-danger); border: 1px solid var(--color-danger-light); }
+    .btn--danger:hover { background: var(--color-danger-light); }
+    .btn--ghost     { background: transparent; color: var(--color-ai); }
+    .btn--ghost:hover { background: var(--color-ai-subtle); }
+    .btn--lg { height: 40px; padding: 0 var(--space-5); font-size: var(--fs-lg); }
+    .btn--sm { height: 28px; padding: 0 var(--space-3); font-size: var(--fs-sm); }
+
+    /* ── 배지 (기존과 동일) ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 10px;
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold); white-space: nowrap;
+    }
+    .badge--neutral { background: var(--color-bg); color: var(--color-text-secondary); border: 1px solid var(--color-border); }
+    .badge--ai      { background: var(--color-ai-light); color: var(--color-ai); }
+    .badge--human   { background: var(--color-human-subtle); color: var(--color-human); }
+    .badge--success { background: var(--color-success-light); color: var(--color-success); }
+    .badge--danger  { background: var(--color-danger-light); color: var(--color-danger); }
+    .badge--warning { background: var(--color-warning-light); color: var(--color-warning); }
+    .badge--dot::before { content:''; display:inline-block; width:5px; height:5px; border-radius:50%; background: currentColor; }
+
+    /* ══════════════════════════════════════
+       사이드바 (다크 네이비) — 메뉴 구조는 기존 유지
+    ══════════════════════════════════════ */
+    .sidebar {
+      grid-area: sidebar;
+      background: var(--color-navy);
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+      position: sticky; top: 0; height: 100vh;
+    }
+
+    .sidebar__brand {
+      padding: var(--space-5) var(--space-4) var(--space-4);
+      border-bottom: 1px solid var(--color-navy-border);
+    }
+    .sidebar__brand-label {
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+      color: var(--color-gold); letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: var(--space-2);
+    }
+    .sidebar__brand-row { display: flex; align-items: center; gap: var(--space-2); }
+    .sidebar__brand-logo {
+      width: 28px; height: 28px; object-fit: contain;
+      filter: brightness(0) invert(1); flex-shrink: 0;
+    }
+    .sidebar__brand-title {
+      font-size: var(--fs-2xl); font-weight: var(--fw-bold);
+      color: #fff; letter-spacing: -0.01em; line-height: 1;
+    }
+    .sidebar__brand-sub {
+      font-size: var(--fs-xs); color: rgba(255,255,255,0.45);
+      margin-top: 5px; line-height: 1.4;
+    }
+
+    .sidebar__section-title {
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+      color: rgba(255,255,255,0.35); text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: var(--space-3) var(--space-4) var(--space-2);
+      margin-top: var(--space-3);
+    }
+    .sidebar__section-title:first-of-type { margin-top: var(--space-2); }
+
+    .sidebar__menu { display: flex; flex-direction: column; gap: 2px; padding: 0 var(--space-2); }
+
+    .sidebar__item {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      font-size: var(--fs-md); color: rgba(255,255,255,0.60);
+      cursor: pointer; transition: background 0.12s, color 0.12s; position: relative;
+    }
+    .sidebar__item:hover { background: var(--color-navy-hover); color: rgba(255,255,255,0.85); }
+    .sidebar__item.is-active { background: var(--color-navy-item); color: #fff; font-weight: var(--fw-semibold); }
+    .sidebar__item.is-active::before {
+      content:''; position: absolute; left: 0; top: 6px; bottom: 6px;
+      width: 3px; background: var(--color-gold); border-radius: 0 2px 2px 0;
+    }
+    .sidebar__icon { width:16px; height:16px; flex-shrink:0; display:flex; align-items:center; justify-content:center; opacity:0.75; }
+    .sidebar__item.is-active .sidebar__icon { opacity: 1; }
+    .sidebar__badge {
+      margin-left: auto; background: var(--color-danger); color: #fff;
+      font-size: 10px; font-weight: var(--fw-semibold);
+      padding: 1px 6px; border-radius: 8px; min-width: 18px; text-align: center;
+    }
+    .sidebar__item--user { display: none; }
+    .sidebar__avatar {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--color-gold); color: var(--color-navy);
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .sidebar__divider { height: 1px; background: var(--color-navy-border); margin: var(--space-3) var(--space-4); }
+
+    .sidebar__hitl {
+      margin: auto var(--space-3) var(--space-4);
+      padding: var(--space-3) var(--space-4);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--color-navy-border);
+      border-radius: var(--radius-md);
+    }
+    .sidebar__hitl-title { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--color-gold); margin-bottom: var(--space-1); }
+    .sidebar__hitl-desc { font-size: var(--fs-xs); color: rgba(255,255,255,0.40); line-height: 1.55; }
+
+    /* ══════════════════════════════════════
+       탑바 (화이트) — 검색/알림/유저/토글/로그아웃 기능 유지
+    ══════════════════════════════════════ */
+    .topbar {
+      grid-area: topbar;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-5); z-index: 10;
+    }
+    .topbar__search {
+      flex: 1; max-width: 480px; margin-right: var(--space-8);
+      display: flex; align-items: center;
+      background: var(--color-bg); border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); padding: 0 var(--space-3); height: 32px;
+    }
+    .topbar__search:focus-within { border-color: var(--color-primary); background: var(--color-surface); }
+    .topbar__search-scope {
+      font-size: var(--fs-sm); color: var(--color-text-secondary);
+      padding-right: var(--space-3); border-right: 1px solid var(--color-border);
+      margin-right: var(--space-3); cursor: pointer; white-space: nowrap;
+    }
+    .topbar__search input { flex: 1; border: none; background: transparent; outline: none; font-size: var(--fs-sm); color: var(--color-text-primary); }
+    .topbar__search input::placeholder { color: var(--color-text-tertiary); }
+
+    .topbar__right { display: flex; align-items: center; gap: var(--space-4); }
+    .topbar__notification {
+      position: relative; width: 32px; height: 32px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-secondary); transition: background 0.15s;
+    }
+    .topbar__notification:hover { background: var(--color-bg); }
+    .topbar__notification-dot {
+      position: absolute; top: 8px; right: 8px; width: 6px; height: 6px;
+      background: var(--color-danger); border-radius: 50%; border: 1.5px solid var(--color-surface);
+    }
+    .topbar__user { display: flex; align-items: center; gap: var(--space-2); padding: 4px var(--space-3) 4px 4px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.15s; }
+    .topbar__user:hover { background: var(--color-bg); }
+    .topbar__avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--color-navy); color: #fff;
+      font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .topbar__user-info { display: flex; flex-direction: column; line-height: 1.2; }
+    .topbar__user-name { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--color-text-primary); }
+    .topbar__user-dept { font-size: var(--fs-xs); color: var(--color-text-tertiary); }
+    .topbar__icon-btn {
+      width: 32px; height: 32px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-tertiary); transition: background 0.15s, color 0.15s;
+    }
+    .topbar__icon-btn:hover { background: var(--color-bg); color: var(--color-text-secondary); }
+
+    /* ══════════════════════════════════════
+       메인 + 페이지 헤더 (기존 구조 유지)
+    ══════════════════════════════════════ */
+    .main { grid-area: main; padding: var(--space-5) var(--space-6); overflow-y: auto; min-width: 0; }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+    .page-header__left { display: flex; align-items: center; gap: var(--space-3); }
+    .page-header__back {
+      width: 32px; height: 32px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      color: var(--color-text-secondary); transition: background 0.15s;
+    }
+    .page-header__back:hover { background: var(--color-bg); }
+    .page-header__title { font-size: var(--fs-2xl); font-weight: var(--fw-bold); color: var(--color-text-primary); letter-spacing: -0.02em; }
+    .page-header__case-id { font-size: var(--fs-md); font-family: var(--font-mono); color: var(--color-text-tertiary); }
+    .page-header__actions { display: flex; gap: var(--space-2); }
+
+    /* ── 스테퍼 (다크 네이비 + 골드) ── */
+    .stepper {
+      background: var(--color-navy-card);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) var(--space-6);
+      display: flex; align-items: center;
+      margin-bottom: var(--space-4); overflow-x: auto;
+    }
+    .stepper__step { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 64px; }
+    .stepper__dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--fs-sm); font-weight: var(--fw-bold); flex-shrink: 0;
+    }
+    .stepper__step.is-done .stepper__dot    { background: var(--color-gold); color: var(--color-navy); }
+    .stepper__step.is-current .stepper__dot { background: transparent; border: 2px solid var(--color-gold); color: var(--color-gold); }
+    .stepper__step:not(.is-done):not(.is-current) .stepper__dot { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.35); }
+    .stepper__label { font-size: var(--fs-xs); white-space: nowrap; }
+    .stepper__step.is-done .stepper__label    { color: rgba(255,255,255,0.55); }
+    .stepper__step.is-current .stepper__label { color: var(--color-gold); font-weight: var(--fw-semibold); }
+    .stepper__step:not(.is-done):not(.is-current) .stepper__label { color: rgba(255,255,255,0.30); }
+    .stepper__line { flex: 1; height: 2px; margin: 0 var(--space-1); margin-bottom: 20px; background: rgba(255,255,255,0.12); }
+    .stepper__line.is-done { background: var(--color-gold); opacity: 0.6; }
+
+    /* ══════════════════════════════════════
+       분석 결과 그리드 — 기존 2열 구조 유지
+    ══════════════════════════════════════ */
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: var(--space-5);
+      align-items: start;
+      margin-bottom: var(--space-5);
+    }
+
+    /* ── 좌측: STT ── */
+    .source-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+    .source-card__header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--color-divider); background: var(--color-surface-alt);
+    }
+    .source-card__title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-md); font-weight: var(--fw-semibold); }
+    .source-card__body { padding: var(--space-5); max-height: 520px; overflow-y: auto; }
+    .source-line { display: flex; gap: var(--space-3); padding: var(--space-2) 0; font-size: var(--fs-sm); line-height: 1.65; }
+    .source-line__time { font-size: var(--fs-xs); color: var(--color-text-tertiary); font-variant-numeric: tabular-nums; flex-shrink: 0; padding-top: 2px; min-width: 38px; }
+    .source-line__speaker { font-size: var(--fs-xs); font-weight: var(--fw-semibold); padding: 1px 5px; border-radius: 3px; flex-shrink: 0; align-self: flex-start; margin-top: 1px; }
+    .source-line__speaker--o { background: var(--color-primary-subtle); color: var(--color-primary); }
+    .source-line__speaker--c { background: var(--color-human-subtle); color: var(--color-human); }
+    .source-line__text { flex: 1; color: var(--color-text-primary); }
+    .keyword-hl { background: var(--color-warning-light); color: var(--color-warning); padding: 0 3px; border-radius: 2px; font-weight: var(--fw-medium); }
+
+    /* ── 우측: AI 요약 ── */
+    .ai-card { background: var(--color-surface); border: 1px solid var(--color-ai-light); border-radius: var(--radius-lg); overflow: hidden; position: relative; }
+    .ai-card::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--color-ai); opacity: 0.8; }
+    .ai-card__header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-divider); background: var(--color-ai-subtle); }
+    .ai-card__title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--color-ai); }
+    .ai-card__title-icon { width: 16px; height: 16px; }
+    .ai-card__meta { font-size: var(--fs-xs); color: var(--color-text-secondary); display: flex; gap: var(--space-2); align-items: center; }
+    .ai-card__body { padding: var(--space-5); }
+    .summary-block { padding: var(--space-3) 0; display: grid; grid-template-columns: 90px 1fr; gap: var(--space-4); align-items: flex-start; border-bottom: 1px solid var(--color-divider); }
+    .summary-block:last-child { border-bottom: none; }
+    .summary-block__label { font-size: var(--fs-xs); color: var(--color-text-tertiary); font-weight: var(--fw-semibold); text-transform: uppercase; letter-spacing: 0.04em; padding-top: 3px; }
+    .summary-block__value { font-size: var(--fs-md); color: var(--color-text-primary); line-height: 1.6; }
+    .summary-block__value--strong { font-weight: var(--fw-semibold); font-size: var(--fs-lg); }
+    .keywords { display: flex; flex-wrap: wrap; gap: 6px; }
+    .keyword-chip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 4px; font-size: var(--fs-xs); color: var(--color-text-primary); font-weight: var(--fw-medium); }
+    .keyword-chip::before { content: '#'; color: var(--color-text-tertiary); }
+    .missing-info { margin-top: var(--space-4); padding: var(--space-3) var(--space-4); background: var(--color-warning-light); border-radius: var(--radius-md); display: flex; gap: var(--space-3); }
+    .missing-info__icon { color: var(--color-warning); flex-shrink: 0; padding-top: 1px; }
+    .missing-info__content { flex: 1; }
+    .missing-info__title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--color-warning); margin-bottom: var(--space-1); }
+    .missing-info__list { font-size: var(--fs-xs); color: var(--color-text-primary); line-height: 1.6; }
+
+    /* ══════════════════════════════════════
+       Top-3 분류 후보 — 다크 네이비 카드 (테마 핵심)
+    ══════════════════════════════════════ */
+    .candidates-section {
+      background: var(--color-navy-card);
+      border: 1px solid var(--color-navy-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: var(--space-5);
+      color: #fff;
+    }
+    .candidates-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--color-navy-border);
+      border-left: 3px solid var(--color-gold);
+    }
+    .candidates-header__title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-md); font-weight: var(--fw-bold); color: var(--color-gold); }
+    .candidates-header__title-icon { width: 16px; height: 16px; }
+    .candidates-header__hint { font-size: var(--fs-xs); color: rgba(255,255,255,0.45); font-weight: var(--fw-medium); }
+
+    .candidates-list { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
+
+    .candidate {
+      display: grid; grid-template-columns: 40px 1fr auto; gap: var(--space-4);
+      padding: var(--space-4) var(--space-5);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--color-navy-border);
+      border-radius: var(--radius-md);
+      transition: all 0.15s; cursor: pointer; align-items: center;
+    }
+    .candidate:hover { border-color: rgba(212,160,23,0.5); background: rgba(255,255,255,0.07); }
+    .candidate.is-selected { border-color: var(--color-gold); background: var(--color-gold-light); box-shadow: inset 0 0 0 1px var(--color-gold); }
+
+    .candidate__rank {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.55);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--fs-lg); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums;
+    }
+    .candidate:first-child .candidate__rank { background: var(--color-gold); color: var(--color-navy); }
+
+    .candidate__main { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+    .candidate__top-row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+    .candidate__category { font-size: var(--fs-lg); font-weight: var(--fw-semibold); color: #fff; }
+    .candidate__agency {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: var(--fs-sm); color: rgba(255,255,255,0.65);
+      padding: 2px 8px; background: rgba(255,255,255,0.08); border-radius: 4px;
+    }
+    .candidate__agency::before { content: '→'; color: rgba(255,255,255,0.4); }
+
+    .candidate__similarity { display: flex; align-items: center; gap: var(--space-3); }
+    .similarity-bar { flex: 1; max-width: 200px; height: 6px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; }
+    .similarity-bar__fill { height: 100%; background: var(--color-gold); border-radius: 3px; }
+    .candidate:nth-child(2) .similarity-bar__fill { opacity: 0.6; }
+    .candidate:nth-child(3) .similarity-bar__fill { opacity: 0.4; }
+    .similarity-value { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--color-gold); font-variant-numeric: tabular-nums; min-width: 42px; }
+
+    .candidate__reason {
+      font-size: var(--fs-sm); color: rgba(255,255,255,0.55); line-height: 1.5;
+      padding-top: var(--space-1); border-top: 1px dashed var(--color-navy-border); margin-top: var(--space-1);
+    }
+    .candidate__reason::before { content: '근거 · '; color: rgba(255,255,255,0.4); font-weight: var(--fw-medium); }
+
+    .candidate__action { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); }
+    .candidate__similar-cases { font-size: var(--fs-xs); color: rgba(255,255,255,0.4); }
+
+    /* 다크 카드 안의 골드 선택 버튼 */
+    .btn--gold { background: var(--color-gold); color: var(--color-navy); font-weight: var(--fw-bold); }
+    .btn--gold:hover { background: var(--color-gold-bright); }
+    .btn--dark-secondary { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); }
+    .btn--dark-secondary:hover { background: rgba(255,255,255,0.14); }
+
+    .manual-option {
+      margin: var(--space-3); padding: var(--space-3) var(--space-5);
+      background: rgba(255,255,255,0.04); border: 1px dashed var(--color-navy-border);
+      border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+    }
+    .manual-option__text { font-size: var(--fs-sm); color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: var(--space-2); }
+    .manual-option__icon { color: rgba(255,255,255,0.4); }
+    .manual-option .btn--ghost { color: var(--color-gold); }
+    .manual-option .btn--ghost:hover { background: rgba(212,160,23,0.12); }
+
+    /* ── 유사 사례 (라이트 카드) ── */
+    .similar-cases-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+    .similar-cases-card__header { padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-divider); display: flex; align-items: center; justify-content: space-between; }
+    .similar-cases-card__title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-md); font-weight: var(--fw-semibold); }
+    .card__action { font-size: var(--fs-sm); color: var(--color-ai); cursor: pointer; }
+    .similar-case-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: var(--space-4); align-items: center; padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-divider); font-size: var(--fs-sm); cursor: pointer; transition: background 0.1s; }
+    .similar-case-row:hover { background: var(--color-surface-alt); }
+    .similar-case-row:last-child { border-bottom: none; }
+    .similar-case-row__id { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--color-text-tertiary); min-width: 60px; }
+    .similar-case-row__summary { color: var(--color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .similar-case-row__sim { font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); color: var(--color-ai); font-size: var(--fs-xs); }
+
+    /* ── 액션 바 (sticky) ── */
+    .action-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: var(--space-6); padding: var(--space-4) var(--space-5);
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg); position: sticky; bottom: var(--space-4); box-shadow: var(--shadow-md);
+    }
+    .action-bar__status { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-sm); }
+    .action-bar__selected { display: flex; flex-direction: column; gap: 2px; }
+    .action-bar__selected-label { font-size: var(--fs-xs); color: var(--color-text-tertiary); }
+    .action-bar__selected-value { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--color-human); }
+    .action-bar__buttons { display: flex; gap: var(--space-2); }
+
+    /* ── 반응형 ── */
+    @media (max-width: 900px) {
+      .analysis-grid { grid-template-columns: 1fr; }
+      .source-card__body { max-height: none; }
+    }
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; grid-template-areas: "topbar" "main"; }
+      .sidebar { display: none; }
+    }
+    @media (max-width: 640px) {
+      .source-card__header, .ai-card__header, .candidates-header, .similar-cases-card__header { align-items: flex-start; flex-direction: column; gap: var(--space-2); }
+      .candidate { grid-template-columns: 32px 1fr; gap: var(--space-3); padding: var(--space-4); }
+      .candidate__action { grid-column: 1 / -1; align-items: stretch; }
+      .similarity-bar { max-width: none; }
+      .manual-option, .action-bar { align-items: stretch; flex-direction: column; }
+      .summary-block { grid-template-columns: 1fr; gap: var(--space-1); }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══════════ Sidebar (다크 네이비) ══════════ -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__brand-label">TEAM FIX · CCAS</div>
+      <div class="sidebar__brand-row">
+        <img class="sidebar__brand-logo" src="images/logo.svg" alt="CCAS">
+        <span class="sidebar__brand-title">CCAS</span>
+      </div>
+      <div class="sidebar__brand-sub">Civil Complaint Assistance System</div>
+    </div>
+
+    <div class="sidebar__section-title">업무</div>
+    <nav class="sidebar__menu">
+      <a class="sidebar__item" href="index.html">
+        <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+        홈
+      </a>
+      <a class="sidebar__item" href="upload.html">
+        <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
+        신규 민원 등록
+      </a>
+      <a class="sidebar__item is-active">
+        <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+        내 처리 민원
+        <span class="sidebar__badge">12</span>
+      </a>
+      <a class="sidebar__item">
+        <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        부서 민원
+      </a>
+      <a class="sidebar__item sidebar__item--user" aria-label="내 정보">
+        <span class="sidebar__avatar">홍</span>
+        내정보
+      </a>
+    </nav>
+
+    <div class="sidebar__divider"></div>
+    <div class="sidebar__section-title">지원</div>
+    <nav class="sidebar__menu">
+      <a class="sidebar__item">
+        <span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+        도움말
+      </a>
+    </nav>
+
+    <div class="sidebar__hitl">
+      <div class="sidebar__hitl-title">Human-in-the-loop</div>
+      <div class="sidebar__hitl-desc">AI는 정리·추천만 수행하고 최종 확정은 담당자가 합니다.</div>
+    </div>
+  </aside>
+
+  <!-- ══════════ Top Bar (검색/알림/유저/토글/로그아웃 유지) ══════════ -->
+  <header class="topbar">
+    <div class="topbar__search">
+      <span class="topbar__search-scope">전체 ▾</span>
+      <input type="text" placeholder="민원번호, 키워드, 민원인명으로 검색">
+    </div>
+    <div class="topbar__right">
+      <button class="topbar__notification" aria-label="알림">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="topbar__notification-dot"></span>
+      </button>
+      <div class="topbar__user">
+        <div class="topbar__avatar">홍</div>
+        <div class="topbar__user-info">
+          <span class="topbar__user-name">홍길동 경위</span>
+          <span class="topbar__user-dept">○○경찰서 민원실</span>
+        </div>
+      </div>
+      <button class="topbar__icon-btn" id="themeToggle" aria-label="테마 전환" title="라이트/다크 모드 전환">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="topbar__icon-btn" aria-label="로그아웃">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ══════════ Main ══════════ -->
+  <main class="main">
+
+    <!-- Page Header (기존 구조 유지) -->
+    <div class="page-header">
+      <div class="page-header__left">
+        <button class="page-header__back" aria-label="뒤로">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <h1 class="page-header__title">민원 분석 결과</h1>
+        <span class="page-header__case-id">#0234</span>
+        <span class="badge badge--warning badge--dot">검토 대기</span>
+      </div>
+      <div class="page-header__actions">
+        <button class="btn btn--secondary btn--sm">원본 보기</button>
+        <button class="btn btn--secondary btn--sm">처리 이력</button>
+      </div>
+    </div>
+
+    <!-- Stepper (다크 네이비 + 골드) -->
+    <div class="stepper">
+      <div class="stepper__step is-done"><div class="stepper__dot">✓</div><span class="stepper__label">민원 입력</span></div>
+      <div class="stepper__line is-done"></div>
+      <div class="stepper__step is-done"><div class="stepper__dot">✓</div><span class="stepper__label">STT 검토</span></div>
+      <div class="stepper__line is-done"></div>
+      <div class="stepper__step is-done"><div class="stepper__dot">✓</div><span class="stepper__label">AI 분석</span></div>
+      <div class="stepper__line is-done"></div>
+      <div class="stepper__step is-current"><div class="stepper__dot">4</div><span class="stepper__label">분류 확정</span></div>
+      <div class="stepper__line"></div>
+      <div class="stepper__step"><div class="stepper__dot">5</div><span class="stepper__label">이관 처리</span></div>
+    </div>
+
+    <!-- 분석 결과 그리드 -->
+    <div class="analysis-grid">
+
+      <!-- 좌측: 원문 STT -->
+      <section class="source-card">
+        <div class="source-card__header">
+          <div class="source-card__title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-secondary);"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            STT 전사문
+          </div>
+          <span class="badge badge--neutral">4분 12초 · 8발화</span>
+        </div>
+        <div class="source-card__body">
+          <div class="source-line">
+            <span class="source-line__time">00:00</span>
+            <span class="source-line__speaker source-line__speaker--o">상담사</span>
+            <span class="source-line__text">네, 안녕하세요. ○○경찰서 민원실입니다. 무엇을 도와드릴까요?</span>
+          </div>
+          <div class="source-line">
+            <span class="source-line__time">00:05</span>
+            <span class="source-line__speaker source-line__speaker--c">민원인</span>
+            <span class="source-line__text">아 저기, 제가 어제 <span class="keyword-hl">중고나라</span>에서 닌텐도 스위치를 <span class="keyword-hl">25만원</span>에 샀거든요. 그런데 돈을 보냈는데 물건이 안 와요. 연락도 안 되고요.</span>
+          </div>
+          <div class="source-line">
+            <span class="source-line__time">00:21</span>
+            <span class="source-line__speaker source-line__speaker--o">상담사</span>
+            <span class="source-line__text">네, 안타까운 일이네요. 정확히 언제 송금을 하셨고, 판매자와 마지막으로 연락하신 게 언제인지 알 수 있을까요?</span>
+          </div>
+          <div class="source-line">
+            <span class="source-line__time">00:35</span>
+            <span class="source-line__speaker source-line__speaker--c">민원인</span>
+            <span class="source-line__text"><span class="keyword-hl">송금은 어제 저녁 7시</span>쯤 했어요. 5월 26일이요. 그 사람이 8시까지 보내준다고 했는데 그 이후로 카톡도 안 읽고, 전화도 안 받아요.</span>
+          </div>
+          <div class="source-line">
+            <span class="source-line__time">00:52</span>
+            <span class="source-line__speaker source-line__speaker--o">상담사</span>
+            <span class="source-line__text">혹시 송금하신 계좌번호와 판매자 아이디, 거래했던 채팅 내용은 보관하고 계신가요?</span>
+          </div>
+          <div class="source-line">
+            <span class="source-line__time">01:04</span>
+            <span class="source-line__speaker source-line__speaker--c">민원인</span>
+            <span class="source-line__text">네 다 있어요. <span class="keyword-hl">캡쳐도 해뒀고요</span>. 어떻게 해야 하나요? 신고를 어디다 해야 하는지 잘 모르겠어서요.</span>
+          </div>
+          <div class="source-line">
+            <span class="source-line__time">01:18</span>
+            <span class="source-line__speaker source-line__speaker--o">상담사</span>
+            <span class="source-line__text">이런 인터넷 사기 건은 사이버수사대 소관입니다. 사이버범죄 신고시스템(ECRM)으로 신고하시는 것이 가장 빠르고요. 필요시 가까운 경찰서 민원실에 방문 접수도 가능합니다.</span>
+          </div>
+          <div class="source-line">
+            <span class="source-line__time">01:38</span>
+            <span class="source-line__speaker source-line__speaker--c">민원인</span>
+            <span class="source-line__text">아 그래요? 그러면 사이버수사대 연락처를 좀 알려주세요.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 우측: AI 요약 -->
+      <section class="ai-card">
+        <div class="ai-card__header">
+          <div class="ai-card__title">
+            <svg class="ai-card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            AI 템플릿 요약
+          </div>
+          <div class="ai-card__meta">
+            <span class="badge badge--ai badge--dot">처리 완료</span>
+            <span>· 2.4초</span>
+          </div>
+        </div>
+        <div class="ai-card__body">
+          <div class="summary-block">
+            <div class="summary-block__label">민원 요약</div>
+            <div class="summary-block__value summary-block__value--strong">중고거래 사기 의심 — 송금 후 물품 미수령 및 판매자 연락두절</div>
+          </div>
+          <div class="summary-block">
+            <div class="summary-block__label">주요 쟁점</div>
+            <div class="summary-block__value">중고나라 거래 후 25만원 송금했으나 물품 미수령. 판매자가 연락두절 상태이며 금전적 피해가 발생함.</div>
+          </div>
+          <div class="summary-block">
+            <div class="summary-block__label">요청 조치</div>
+            <div class="summary-block__value">신고 가능 기관 안내 및 사이버수사대 연락처 제공 요청</div>
+          </div>
+          <div class="summary-block">
+            <div class="summary-block__label">발생 시점</div>
+            <div class="summary-block__value">2026년 5월 26일 (어제) 저녁 7시경 송금, 8시 이후 연락두절</div>
+          </div>
+          <div class="summary-block">
+            <div class="summary-block__label">발생 장소</div>
+            <div class="summary-block__value">온라인 (중고나라 플랫폼)</div>
+          </div>
+          <div class="summary-block">
+            <div class="summary-block__label">관련 대상</div>
+            <div class="summary-block__value">판매자 (신원 미확인) · 거래 플랫폼: 중고나라</div>
+          </div>
+          <div class="summary-block">
+            <div class="summary-block__label">증거 자료</div>
+            <div class="summary-block__value">민원인이 거래 채팅 캡쳐 보관 중 · 송금 계좌 정보 보유</div>
+          </div>
+          <div class="summary-block">
+            <div class="summary-block__label">핵심 키워드</div>
+            <div class="summary-block__value">
+              <div class="keywords">
+                <span class="keyword-chip">중고거래</span>
+                <span class="keyword-chip">사기</span>
+                <span class="keyword-chip">송금피해</span>
+                <span class="keyword-chip">판매자연락두절</span>
+                <span class="keyword-chip">25만원</span>
+                <span class="keyword-chip">중고나라</span>
+              </div>
+            </div>
+          </div>
+          <div class="missing-info">
+            <div class="missing-info__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="missing-info__content">
+              <div class="missing-info__title">추가 확인이 필요한 정보</div>
+              <div class="missing-info__list">
+                · 판매자의 송금 계좌번호 (수사 의뢰 시 필수)<br>
+                · 판매자 ID 및 거래 사이트 닉네임<br>
+                · 민원인 본인 신원 정보 (실명·연락처)
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ══════════ Top-3 분류 후보 (다크 네이비) ══════════ -->
+    <section class="candidates-section">
+      <div class="candidates-header">
+        <div class="candidates-header__title">
+          <svg class="candidates-header__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Top-3 분류 후보 · 담당자 선택 필요
+        </div>
+        <span class="candidates-header__hint">AI는 보조 역할입니다. 최종 분류는 담당자가 결정합니다.</span>
+      </div>
+
+      <div class="candidates-list">
+        <!-- Candidate 1 -->
+        <div class="candidate is-selected" onclick="selectCandidate(this, '사이버 사기', '사이버수사대')">
+          <div class="candidate__rank">1</div>
+          <div class="candidate__main">
+            <div class="candidate__top-row">
+              <span class="candidate__category">사이버 사기</span>
+              <span class="candidate__agency">사이버수사대 · ECRM 이관</span>
+              <span class="badge badge--success badge--dot">경찰 소관</span>
+            </div>
+            <div class="candidate__similarity">
+              <div class="similarity-bar"><div class="similarity-bar__fill" style="width: 87%;"></div></div>
+              <span class="similarity-value">87.3%</span>
+            </div>
+            <div class="candidate__reason">
+              "중고거래 + 송금 후 미수령 + 판매자 연락두절" 패턴이 기존 사이버 사기 사례 142건과 높은 일치율을 보임. ECRM 신고 대상에 해당.
+            </div>
+          </div>
+          <div class="candidate__action">
+            <button class="btn btn--gold btn--sm">선택됨 ✓</button>
+            <span class="candidate__similar-cases">유사 사례 142건</span>
+          </div>
+        </div>
+
+        <!-- Candidate 2 -->
+        <div class="candidate" onclick="selectCandidate(this, '일반 사기', '수사과')">
+          <div class="candidate__rank">2</div>
+          <div class="candidate__main">
+            <div class="candidate__top-row">
+              <span class="candidate__category">일반 사기</span>
+              <span class="candidate__agency">관할 경찰서 수사과</span>
+              <span class="badge badge--success badge--dot">경찰 소관</span>
+            </div>
+            <div class="candidate__similarity">
+              <div class="similarity-bar"><div class="similarity-bar__fill" style="width: 79%;"></div></div>
+              <span class="similarity-value" style="color: rgba(255,255,255,0.55);">79.1%</span>
+            </div>
+            <div class="candidate__reason">
+              금전 편취 의도와 피해 발생이 인정되어 형법상 사기죄 적용 가능. 다만 온라인 거래 특성상 사이버수사대가 우선 검토.
+            </div>
+          </div>
+          <div class="candidate__action">
+            <button class="btn btn--dark-secondary btn--sm">선택</button>
+            <span class="candidate__similar-cases">유사 사례 89건</span>
+          </div>
+        </div>
+
+        <!-- Candidate 3 -->
+        <div class="candidate" onclick="selectCandidate(this, '소비자 분쟁', '한국소비자원')">
+          <div class="candidate__rank">3</div>
+          <div class="candidate__main">
+            <div class="candidate__top-row">
+              <span class="candidate__category">소비자 분쟁</span>
+              <span class="candidate__agency">한국소비자원</span>
+              <span class="badge badge--warning badge--dot">타기관 이관</span>
+            </div>
+            <div class="candidate__similarity">
+              <div class="similarity-bar"><div class="similarity-bar__fill" style="width: 71%;"></div></div>
+              <span class="similarity-value" style="color: rgba(255,255,255,0.55);">71.4%</span>
+            </div>
+            <div class="candidate__reason">
+              개인 간 거래 분쟁의 일반적 패턴과 유사. 다만 본 건은 사기 의도가 명확하여 형사 사건으로 처리하는 것이 적절.
+            </div>
+          </div>
+          <div class="candidate__action">
+            <button class="btn btn--dark-secondary btn--sm">선택</button>
+            <span class="candidate__similar-cases">유사 사례 31건</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="manual-option">
+        <div class="manual-option__text">
+          <svg class="manual-option__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span>위 후보가 모두 적절하지 않다면, 분류와 이관 기관을 직접 입력할 수 있습니다</span>
+        </div>
+        <button class="btn btn--ghost btn--sm">직접 입력 / 수정 →</button>
+      </div>
+    </section>
+
+    <!-- 유사 사례 -->
+    <section class="similar-cases-card">
+      <div class="similar-cases-card__header">
+        <div class="similar-cases-card__title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-secondary);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          유사 처리 사례 (벡터 DB 기반)
+        </div>
+        <span class="card__action">전체 보기 →</span>
+      </div>
+      <div class="similar-case-row">
+        <span class="similar-case-row__id">#PAST-1402</span>
+        <span class="similar-case-row__summary">중고나라 게임기 거래 후 송금 사기, 사이버수사대 이관 처리</span>
+        <span class="badge badge--ai">사이버 사기</span>
+        <span class="similar-case-row__sim">92.1%</span>
+      </div>
+      <div class="similar-case-row">
+        <span class="similar-case-row__id">#PAST-1287</span>
+        <span class="similar-case-row__summary">당근마켓 명품 거래 후 판매자 연락두절 사례</span>
+        <span class="badge badge--ai">사이버 사기</span>
+        <span class="similar-case-row__sim">88.7%</span>
+      </div>
+      <div class="similar-case-row">
+        <span class="similar-case-row__id">#PAST-1156</span>
+        <span class="similar-case-row__summary">번개장터 거래 후 환불 거부, 사이버수사대 ECRM 이관</span>
+        <span class="badge badge--ai">사이버 사기</span>
+        <span class="similar-case-row__sim">85.3%</span>
+      </div>
+      <div class="similar-case-row">
+        <span class="similar-case-row__id">#PAST-1098</span>
+        <span class="similar-case-row__summary">SNS 중고거래 사기 피해, 일반 사기로 분류 처리</span>
+        <span class="badge badge--ai">일반 사기</span>
+        <span class="similar-case-row__sim">81.0%</span>
+      </div>
+    </section>
+
+    <!-- ══════════ Action Bar (Sticky) ══════════ -->
+    <div class="action-bar">
+      <div class="action-bar__status">
+        <div class="action-bar__selected">
+          <span class="action-bar__selected-label">현재 선택</span>
+          <span class="action-bar__selected-value" id="selectedDisplay">사이버 사기 → 사이버수사대</span>
+        </div>
+      </div>
+      <div class="action-bar__buttons">
+        <button class="btn btn--secondary">이전</button>
+        <button class="btn btn--danger">반려</button>
+        <button class="btn btn--human btn--lg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          분류 확정 및 이관 초안 생성
+        </button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // 후보 선택 (기존 기능 유지)
+  function selectCandidate(el, category, agency) {
+    document.querySelectorAll('.candidate').forEach(c => {
+      c.classList.remove('is-selected');
+      const btn = c.querySelector('.candidate__action button');
+      btn.className = 'btn btn--dark-secondary btn--sm';
+      btn.textContent = '선택';
+    });
+    el.classList.add('is-selected');
+    const btn = el.querySelector('.candidate__action button');
+    btn.className = 'btn btn--gold btn--sm';
+    btn.textContent = '선택됨 ✓';
+    document.getElementById('selectedDisplay').textContent = category + ' → ' + agency;
+  }
+</script>
+</body>
+</html>
