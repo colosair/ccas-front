@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CCAS - 신규 민원 등록 [프리뷰 1/5]</title>
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="preview-theme.css">
+  <style>
+    .upload-layout { max-width: 880px; margin: 0 auto; }
+
+    .tabs { display: flex; border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-5); }
+    .tab {
+      padding: var(--space-3) var(--space-5); font-size: var(--fs-md); font-weight: var(--fw-medium);
+      color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
+      display: flex; align-items: center; gap: var(--space-2);
+    }
+    .tab:hover { color: var(--color-text-primary); }
+    .tab.is-active { color: var(--color-gold); border-bottom-color: var(--color-gold); font-weight: var(--fw-semibold); }
+    .tab__icon { width: 16px; height: 16px; }
+    .tab-panel { display: none; }
+    .tab-panel.is-active { display: block; }
+
+    .dropzone {
+      border: 2px dashed var(--color-border-strong); border-radius: var(--radius-lg);
+      padding: var(--space-10) var(--space-6); text-align: center; background: var(--color-surface);
+      transition: all 0.15s; cursor: pointer;
+    }
+    .dropzone:hover { border-color: var(--color-gold); background: var(--color-gold-light); }
+    .dropzone__icon {
+      width: 56px; height: 56px; margin: 0 auto var(--space-4);
+      background: var(--color-ai-subtle); color: var(--color-ai); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dropzone__title { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: var(--space-2); }
+    .dropzone__desc { font-size: var(--fs-md); color: var(--color-text-secondary); margin-bottom: var(--space-5); }
+    .dropzone__formats { font-size: var(--fs-xs); color: var(--color-text-tertiary); margin-top: var(--space-3); }
+
+    .file-card {
+      display: flex; align-items: center; gap: var(--space-4);
+      padding: var(--space-4) var(--space-5); background: var(--color-surface);
+      border: 1px solid var(--color-border); border-radius: var(--radius-lg); margin-top: var(--space-4);
+    }
+    .file-card__icon {
+      width: 40px; height: 40px; background: var(--color-ai-subtle); color: var(--color-ai);
+      border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .file-card__info { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .file-card__name { font-size: var(--fs-md); font-weight: var(--fw-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-card__meta { font-size: var(--fs-xs); color: var(--color-text-tertiary); display: flex; gap: var(--space-3); align-items: center; }
+    .file-card__remove {
+      width: 32px; height: 32px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center; color: var(--color-text-tertiary); transition: all 0.15s;
+    }
+    .file-card__remove:hover { background: var(--color-danger-subtle); color: var(--color-danger); }
+    .progress { margin-top: var(--space-3); }
+    .progress__bar { height: 4px; background: var(--color-border); border-radius: 2px; overflow: hidden; }
+    .progress__fill { height: 100%; background: var(--color-gold); border-radius: 2px; }
+
+    .meta-fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-5); }
+    .field { display: flex; flex-direction: column; gap: var(--space-2); }
+    .field__label { font-size: var(--fs-sm); font-weight: var(--fw-medium); display: flex; align-items: center; gap: var(--space-2); }
+    .field__optional { font-size: var(--fs-xs); color: var(--color-text-tertiary); font-weight: var(--fw-regular); }
+    .field__input, .field__select {
+      height: 36px; padding: 0 var(--space-3); border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); background: var(--color-surface);
+      font-size: var(--fs-md); color: var(--color-text-primary); outline: none; transition: border-color 0.15s;
+    }
+    .field__input:focus, .field__select:focus { border-color: var(--color-gold); }
+
+    .textarea-wrapper { position: relative; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); transition: border-color 0.15s; }
+    .textarea-wrapper:focus-within { border-color: var(--color-gold); }
+    .textarea-wrapper textarea {
+      width: 100%; min-height: 240px; padding: var(--space-4) var(--space-5); border: none; outline: none;
+      font-family: inherit; font-size: var(--fs-md); line-height: 1.7; color: var(--color-text-primary); background: transparent; resize: vertical;
+    }
+    .textarea-wrapper textarea::placeholder { color: var(--color-text-tertiary); line-height: 1.7; }
+    .textarea-footer {
+      display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-5);
+      border-top: 1px solid var(--color-divider); font-size: var(--fs-xs); color: var(--color-text-tertiary);
+      background: var(--color-surface-alt); border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+    .action-bar { margin-top: var(--space-6); position: static; box-shadow: none; }
+
+    @media (max-width: 640px) {
+      .meta-fields { grid-template-columns: 1fr; }
+      .tab { flex: 1; justify-content: center; padding: var(--space-3); }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__brand-label">TEAM FIX · CCAS</div>
+      <div class="sidebar__brand-row">
+        <img class="sidebar__brand-logo" src="images/logo.svg" alt="CCAS">
+        <span class="sidebar__brand-title">CCAS</span>
+      </div>
+      <div class="sidebar__brand-sub">Civil Complaint Assistance System</div>
+    </div>
+    <div class="sidebar__section-title">업무</div>
+    <nav class="sidebar__menu">
+      <a class="sidebar__item"><span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>홈</a>
+      <a class="sidebar__item is-active"><span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>신규 민원 등록</a>
+      <a class="sidebar__item"><span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>내 처리 민원<span class="sidebar__badge">12</span></a>
+      <a class="sidebar__item"><span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>부서 민원</a>
+    </nav>
+    <div class="sidebar__divider"></div>
+    <div class="sidebar__section-title">지원</div>
+    <nav class="sidebar__menu">
+      <a class="sidebar__item"><span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>도움말</a>
+    </nav>
+    <div class="sidebar__hitl">
+      <div class="sidebar__hitl-title">Human-in-the-loop</div>
+      <div class="sidebar__hitl-desc">AI는 정리·추천만 수행하고 최종 확정은 담당자가 합니다.</div>
+    </div>
+  </aside>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar__search">
+      <span class="topbar__search-scope">전체 ▾</span>
+      <input type="text" placeholder="민원번호, 키워드, 민원인명으로 검색">
+    </div>
+    <div class="topbar__right">
+      <button class="topbar__notification" aria-label="알림"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="topbar__notification-dot"></span></button>
+      <div class="topbar__user"><div class="topbar__avatar">홍</div><div class="topbar__user-info"><span class="topbar__user-name">홍길동 경위</span><span class="topbar__user-dept">○○경찰서 민원실</span></div></div>
+      <button class="topbar__icon-btn" id="themeToggle" aria-label="테마 전환"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="topbar__icon-btn" aria-label="로그아웃"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="upload-layout">
+
+      <div class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-header__title">신규 민원 등록</h1>
+        </div>
+      </div>
+
+      <!-- Stepper -->
+      <div class="stepper">
+        <div class="stepper__step is-current"><div class="stepper__dot">1</div><span class="stepper__label">민원 입력</span></div>
+        <div class="stepper__line"></div>
+        <div class="stepper__step"><div class="stepper__dot">2</div><span class="stepper__label">STT 검토</span></div>
+        <div class="stepper__line"></div>
+        <div class="stepper__step"><div class="stepper__dot">3</div><span class="stepper__label">AI 분석</span></div>
+        <div class="stepper__line"></div>
+        <div class="stepper__step"><div class="stepper__dot">4</div><span class="stepper__label">분류 확정</span></div>
+        <div class="stepper__line"></div>
+        <div class="stepper__step"><div class="stepper__dot">5</div><span class="stepper__label">이관 처리</span></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab is-active" onclick="switchTab(event, 'audio')">
+          <svg class="tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          녹취 파일 업로드
+        </div>
+        <div class="tab" onclick="switchTab(event, 'text')">
+          <svg class="tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          텍스트 직접 입력
+        </div>
+      </div>
+
+      <!-- Panel: audio -->
+      <div class="tab-panel is-active" id="panel-audio">
+        <div class="dropzone">
+          <div class="dropzone__icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <div class="dropzone__title">녹취 파일을 여기에 끌어 놓으세요</div>
+          <div class="dropzone__desc">또는 파일을 직접 선택할 수 있습니다</div>
+          <button class="btn btn--primary">파일 선택</button>
+          <div class="dropzone__formats">지원 형식: WAV, MP3, M4A, FLAC · 최대 100MB</div>
+        </div>
+        <div class="file-card">
+          <div class="file-card__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="file-card__info">
+            <div class="file-card__name">민원녹취_20260527_0234.mp3</div>
+            <div class="file-card__meta"><span>4분 12초</span><span>·</span><span>3.8 MB</span><span>·</span><span class="badge badge--success badge--dot">업로드 완료</span></div>
+            <div class="progress"><div class="progress__bar"><div class="progress__fill" style="width: 100%;"></div></div></div>
+          </div>
+          <button class="file-card__remove" aria-label="제거"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="meta-fields">
+          <div class="field">
+            <label class="field__label">접수 채널 <span class="field__optional">(선택)</span></label>
+            <select class="field__select"><option>112 신고 (비긴급)</option><option>민원실 전화</option><option>방문 접수</option><option>기타</option></select>
+          </div>
+          <div class="field">
+            <label class="field__label">민원인 연락처 <span class="field__optional">(선택)</span></label>
+            <input class="field__input" type="text" value="010-****-1234">
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: text -->
+      <div class="tab-panel" id="panel-text">
+        <div class="textarea-wrapper">
+          <textarea placeholder="민원 내용을 입력하세요.&#10;&#10;· 시점, 장소, 관련자 정보를 가능한 구체적으로 작성해주세요&#10;· 민원인이 원하는 조치 사항이 있다면 함께 기재해주세요"></textarea>
+          <div class="textarea-footer">
+            <span>💡 자세히 입력할수록 AI 분류 정확도가 향상됩니다</span>
+            <span>0 / 5,000자</span>
+          </div>
+        </div>
+        <div class="meta-fields">
+          <div class="field">
+            <label class="field__label">접수 채널</label>
+            <select class="field__select"><option>민원실 전화</option><option>방문 접수</option><option>112 신고 (비긴급)</option></select>
+          </div>
+          <div class="field">
+            <label class="field__label">민원인 연락처 <span class="field__optional">(선택)</span></label>
+            <input class="field__input" type="text" placeholder="010-****-****">
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <div class="action-bar__hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>다음 단계에서 STT 결과를 확인·수정하실 수 있습니다</span>
+        </div>
+        <div class="action-bar__buttons">
+          <button class="btn btn--secondary">취소</button>
+          <button class="btn btn--gold" onclick="goNext('preview-flow-2-stt.html')">
+            다음: STT 검토
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="preview-flow.js"></script>
+<script>
+  function switchTab(event, name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('is-active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('is-active'));
+    event.currentTarget.classList.add('is-active');
+    document.getElementById('panel-' + name).classList.add('is-active');
+  }
+</script>
+</body>
+</html>

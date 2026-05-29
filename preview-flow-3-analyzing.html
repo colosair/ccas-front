@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CCAS - AI 분석 중 [프리뷰 3/5]</title>
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="preview-theme.css">
+  <style>
+    .analyzing-wrap { max-width: 720px; margin: var(--space-6) auto 0; }
+
+    .analyzing-card {
+      background: var(--color-navy-card);
+      border: 1px solid var(--color-navy-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-10) var(--space-8);
+      color: #fff; text-align: center; position: relative; overflow: hidden;
+    }
+    .analyzing-card::before { content:''; position: absolute; top:0; left:0; right:0; height:3px; background: var(--color-gold); }
+
+    /* 골드 스피너 */
+    .spinner { width: 56px; height: 56px; margin: 0 auto var(--space-5); position: relative; }
+    .spinner svg { width: 100%; height: 100%; animation: spin 1.1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner circle { fill: none; stroke-width: 4; }
+    .spinner .track { stroke: rgba(255,255,255,0.12); }
+    .spinner .head { stroke: var(--color-gold); stroke-linecap: round; stroke-dasharray: 90 200; }
+
+    .analyzing-title { font-size: var(--fs-xl); font-weight: var(--fw-bold); margin-bottom: var(--space-2); }
+    .analyzing-sub { font-size: var(--fs-md); color: rgba(255,255,255,0.5); margin-bottom: var(--space-6); }
+    .analyzing-stage-label { font-size: var(--fs-md); color: var(--color-gold); font-weight: var(--fw-semibold); min-height: 20px; margin-bottom: var(--space-3); }
+
+    /* 진행 바 */
+    .pbar { height: 6px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; margin-bottom: var(--space-2); }
+    .pbar__fill { height: 100%; width: 0; background: var(--color-gold); border-radius: 3px; transition: width 0.4s ease; }
+    .pbar__meta { display: flex; justify-content: space-between; font-size: var(--fs-xs); color: rgba(255,255,255,0.45); font-variant-numeric: tabular-nums; margin-bottom: var(--space-6); }
+
+    /* 체크리스트 */
+    .checklist { display: flex; flex-direction: column; gap: var(--space-2); text-align: left; }
+    .check-item {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: rgba(255,255,255,0.04); border: 1px solid var(--color-navy-border);
+      border-radius: var(--radius-md); transition: all 0.3s;
+    }
+    .check-item__icon {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.4);
+      font-size: var(--fs-xs); transition: all 0.3s;
+    }
+    .check-item__label { font-size: var(--fs-md); color: rgba(255,255,255,0.5); transition: color 0.3s; flex: 1; }
+    .check-item__spin { display: none; width: 14px; height: 14px; }
+    .check-item__spin svg { animation: spin 0.9s linear infinite; }
+
+    .check-item.is-active { background: var(--color-gold-light); border-color: rgba(212,160,23,0.5); }
+    .check-item.is-active .check-item__icon { background: transparent; color: var(--color-gold); }
+    .check-item.is-active .check-item__label { color: #fff; font-weight: var(--fw-semibold); }
+    .check-item.is-active .check-item__spin { display: block; color: var(--color-gold); }
+    .check-item.is-active .check-item__num { display: none; }
+
+    .check-item.is-done .check-item__icon { background: var(--color-gold); color: var(--color-navy); }
+    .check-item.is-done .check-item__label { color: rgba(255,255,255,0.7); }
+    .check-item.is-done .check-item__spin { display: none; }
+    .check-item.is-done .check-item__num { display: none; }
+    .check-item.is-done .check-item__done { display: block; }
+    .check-item__done { display: none; }
+
+    .analyzing-foot {
+      margin-top: var(--space-6); font-size: var(--fs-xs); color: rgba(255,255,255,0.4);
+      display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+    }
+    .skip-link { position: absolute; top: var(--space-4); right: var(--space-5); font-size: var(--fs-xs); color: rgba(255,255,255,0.5); cursor: pointer; }
+    .skip-link:hover { color: var(--color-gold); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__brand-label">TEAM FIX · CCAS</div>
+      <div class="sidebar__brand-row"><img class="sidebar__brand-logo" src="images/logo.svg" alt="CCAS"><span class="sidebar__brand-title">CCAS</span></div>
+      <div class="sidebar__brand-sub">Civil Complaint Assistance System</div>
+    </div>
+    <div class="sidebar__section-title">업무</div>
+    <nav class="sidebar__menu">
+      <a class="sidebar__item"><span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>홈</a>
+      <a class="sidebar__item is-active"><span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>내 처리 민원<span class="sidebar__badge">12</span></a>
+      <a class="sidebar__item"><span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>부서 민원</a>
+    </nav>
+    <div class="sidebar__divider"></div>
+    <div class="sidebar__section-title">지원</div>
+    <nav class="sidebar__menu">
+      <a class="sidebar__item"><span class="sidebar__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>도움말</a>
+    </nav>
+    <div class="sidebar__hitl">
+      <div class="sidebar__hitl-title">Human-in-the-loop</div>
+      <div class="sidebar__hitl-desc">AI는 정리·추천만 수행하고 최종 확정은 담당자가 합니다.</div>
+    </div>
+  </aside>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar__search"><span class="topbar__search-scope">전체 ▾</span><input type="text" placeholder="민원번호, 키워드, 민원인명으로 검색"></div>
+    <div class="topbar__right">
+      <button class="topbar__notification" aria-label="알림"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="topbar__notification-dot"></span></button>
+      <div class="topbar__user"><div class="topbar__avatar">홍</div><div class="topbar__user-info"><span class="topbar__user-name">홍길동 경위</span><span class="topbar__user-dept">○○경찰서 민원실</span></div></div>
+      <button class="topbar__icon-btn" id="themeToggle" aria-label="테마 전환"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="topbar__icon-btn" aria-label="로그아웃"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-header__left">
+        <h1 class="page-header__title">AI 분석 진행 중</h1>
+        <span class="page-header__case-id">#0234</span>
+      </div>
+    </div>
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="stepper__step is-done"><div class="stepper__dot">✓</div><span class="stepper__label">민원 입력</span></div>
+      <div class="stepper__line"></div>
+      <div class="stepper__step is-done"><div class="stepper__dot">✓</div><span class="stepper__label">STT 검토</span></div>
+      <div class="stepper__line"></div>
+      <div class="stepper__step is-current"><div class="stepper__dot">3</div><span class="stepper__label">AI 분석</span></div>
+      <div class="stepper__line"></div>
+      <div class="stepper__step"><div class="stepper__dot">4</div><span class="stepper__label">분류 확정</span></div>
+      <div class="stepper__line"></div>
+      <div class="stepper__step"><div class="stepper__dot">5</div><span class="stepper__label">이관 처리</span></div>
+    </div>
+
+    <div class="analyzing-wrap">
+      <div class="analyzing-card">
+        <span class="skip-link" onclick="goNext('preview-flow-4-classify.html')">건너뛰기 →</span>
+
+        <div class="spinner">
+          <svg viewBox="0 0 50 50"><circle class="track" cx="25" cy="25" r="20"/><circle class="head" cx="25" cy="25" r="20"/></svg>
+        </div>
+
+        <div class="analyzing-title">AI가 민원을 분석하고 있습니다</div>
+        <div class="analyzing-sub">전사문을 구조화하고 유사 사례를 검색해 분류 후보를 생성합니다</div>
+
+        <div class="analyzing-stage-label" id="stageLabel">전사문을 정리하는 중…</div>
+        <div class="pbar"><div class="pbar__fill" id="pbarFill"></div></div>
+        <div class="pbar__meta"><span id="pbarPct">0%</span><span id="elapsed">0.0초 경과</span></div>
+
+        <div class="checklist" id="checklist">
+          <div class="check-item" data-label="전사문 정리 중…">
+            <div class="check-item__icon">
+              <span class="check-item__num">1</span>
+              <span class="check-item__spin"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span>
+              <span class="check-item__done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </div>
+            <span class="check-item__label">전사문 정리 및 화자 정규화</span>
+          </div>
+          <div class="check-item" data-label="핵심 정보 추출 중…">
+            <div class="check-item__icon">
+              <span class="check-item__num">2</span>
+              <span class="check-item__spin"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span>
+              <span class="check-item__done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </div>
+            <span class="check-item__label">핵심 정보 추출 (시점·장소·대상·요청)</span>
+          </div>
+          <div class="check-item" data-label="유사 사례 벡터 검색 중…">
+            <div class="check-item__icon">
+              <span class="check-item__num">3</span>
+              <span class="check-item__spin"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span>
+              <span class="check-item__done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </div>
+            <span class="check-item__label">유사 처리 사례 벡터 검색</span>
+          </div>
+          <div class="check-item" data-label="분류 후보 생성 중…">
+            <div class="check-item__icon">
+              <span class="check-item__num">4</span>
+              <span class="check-item__spin"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span>
+              <span class="check-item__done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </div>
+            <span class="check-item__label">Top-3 분류 후보 및 이관 기관 산출</span>
+          </div>
+        </div>
+
+        <div class="analyzing-foot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>AI는 보조 역할입니다. 최종 분류는 담당자가 결정합니다.</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="preview-flow.js"></script>
+<script>
+  // 분석 로딩 시뮬레이션 → 완료 후 4단계 자동 이동
+  (function () {
+    var items = Array.from(document.querySelectorAll('.check-item'));
+    var stageLabel = document.getElementById('stageLabel');
+    var pbarFill = document.getElementById('pbarFill');
+    var pbarPct = document.getElementById('pbarPct');
+    var elapsed = document.getElementById('elapsed');
+
+    var stageDuration = 1000;          // 각 단계 길이(ms)
+    var total = items.length;
+    var start = performance.now();
+
+    // 경과 시간 카운터
+    var timer = setInterval(function () {
+      var s = (performance.now() - start) / 1000;
+      elapsed.textContent = s.toFixed(1) + '초 경과';
+    }, 100);
+
+    function runStage(i) {
+      if (i >= total) {
+        clearInterval(timer);
+        pbarFill.style.width = '100%';
+        pbarPct.textContent = '100%';
+        stageLabel.textContent = '분석 완료 · 결과를 불러옵니다';
+        setTimeout(function () { goNext('preview-flow-4-classify.html'); }, 600);
+        return;
+      }
+      var item = items[i];
+      item.classList.add('is-active');
+      stageLabel.textContent = item.getAttribute('data-label');
+
+      var pct = Math.round(((i + 1) / total) * 100);
+      pbarFill.style.width = pct + '%';
+      pbarPct.textContent = pct + '%';
+
+      setTimeout(function () {
+        item.classList.remove('is-active');
+        item.classList.add('is-done');
+        runStage(i + 1);
+      }, stageDuration);
+    }
+
+    setTimeout(function () { runStage(0); }, 400);
+  })();
+</script>
+</body>
+</html>
